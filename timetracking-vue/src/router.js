@@ -14,12 +14,36 @@ export default new Router({
       component: Home,
     },
     {
-      path: '/about',
-      name: 'about',
+      path: '/sign-in',
+      name: 'sign-in',
       // route level code-splitting
-      // this generates a separate chunk (about.[hash].js) for this route
+      // this generates a separate chunk (sign-in.[hash].js) for this route
       // which is lazy-loaded when the route is visited.
-      component: () => import(/* webpackChunkName: "about" */ './views/About.vue'),
+      component: () => import(/* webpackChunkName: "sign-in" */ './views/sign-in.vue'),
+    },
+    {
+      path: '/sign-up',
+      name: 'sign-up',
+      // route level code-splitting
+      // this generates a separate chunk (sign-up.[hash].js) for this route
+      // which is lazy-loaded when the route is visited.
+      component: () => import(/* webpackChunkName: "sign-up" */ './views/sign-up.vue'),
+    },
+    {
+      path: '/dashboard',
+      name: 'dashboard',
+      // route level code-splitting
+      // this generates a separate chunk (dashboard.[hash].js) for this route
+      // which is lazy-loaded when the route is visited.
+      component: () => import(/* webpackChunkName: "dashboard" */ './views/dashboard.vue'),
+    },
+    {
+      path: '/reports',
+      name: 'reports',
+      // route level code-splitting
+      // this generates a separate chunk (reports.[hash].js) for this route
+      // which is lazy-loaded when the route is visited.
+      component: () => import(/* webpackChunkName: "reports" */ './views/reports.vue'),
     },
   ],
 });
