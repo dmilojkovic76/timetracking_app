@@ -7,6 +7,7 @@ var app        = express();
 var bodyParser = require('body-parser');
 var mongoose   = require('mongoose');
 var morgan     = require('morgan');             // logs requests to the console
+var cors       = require('cors');
 
 var jwt        = require('jsonwebtoken');       // create, sign, and verify jwt tokens
 var config     = require('./config');
@@ -17,6 +18,8 @@ var Timer      = require('./app/models/timers');
 var port = process.env.PORT || 8080;
 mongoose.connect(config.database, {useNewUrlParser: true});
 app.set('superSecret', config.secret);
+
+app.use(cors());
 
 // configure app to use bodyParser() that will allow to get the data from a POST
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -29,8 +32,22 @@ app.use(morgan('dev'));
 // =============================================================================
 var router = express.Router();                  // get an instance of the express Router
 
-// route to authenticate a user (POST http://localhost:8080/api/authenticate)
-router.post('/authenticate', function(req, res) {
+router.post('/sign-up', (req, res) => {
+    // create a user (accessed at POST http://localhost:8080/api/sign-up)
+        var user = new User();      // create a new instance of the User model
+        user.fullName = req.body.fullName;  // set the User name (comes from the request)
+        user.email = req.body.email;  // set the User email (comes from the request)
+        user.password = req.body.password;  // set the User password (comes from the request)
+        // save the user and check for errors
+        user.save(function(err) {
+            if (err)
+                res.send(err);
+            res.json({ message: 'user created!' });
+        });
+});
+
+// route to authenticate a user (POST http://localhost:8080/api/sign-in)
+router.post('/sign-in', function(req, res) {
     // find the user
     User.findOne({ email: req.body.email }, function(err, user) {
         console.log(`Pretraga za ${req.body.email} rezultat ${user}`)
@@ -94,18 +111,6 @@ router.get('/', function(req, res) {
 
 // This route is protected and will require a token.
 router.route('/users')
-    // create a user (accessed at POST http://localhost:8080/api/users)
-    .post(function(req, res) {
-        var user = new User();      // create a new instance of the User model
-        user.email = req.body.email;  // set the User email (comes from the request)
-        user.password = req.body.password;  // set the User password (comes from the request)
-        // save the user and check for errors
-        user.save(function(err) {
-            if (err)
-                res.send(err);
-            res.json({ message: 'user created!' });
-        });
-    })
     // get all the users (accessed at GET http://localhost:8080/api/users)
     .get(function(req, res) {
         User.find(function(err, users) {
