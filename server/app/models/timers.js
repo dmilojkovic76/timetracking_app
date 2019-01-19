@@ -1,9 +1,8 @@
 // app/models/timers.js
 
 var mongoose     = require('mongoose');
-var Schema       = mongoose.Schema;
 
-var TimerSchema   = new Schema({
+var TimerSchema   = new mongoose.Schema({
     userId: String,
     startTime: Date,
     endTime: Date

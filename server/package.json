@@ -1,5 +1,9 @@
 {
     "name": "timetracking-app-node-api",
+    "version": "1.0.0",
+    "description": "timetracking-app-node-api",
+    "author": "dmilojkovic76",
+    "license": "MIT",
     "main": "server.js",
     "scripts": {
         "start": "node server.js",

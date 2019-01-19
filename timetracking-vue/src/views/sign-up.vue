@@ -1,16 +1,16 @@
 <template>
   <v-container fluid>
     <v-layout column justify-center align-center>
-      <v-flex>
+      <v-badge>
         <v-img
           :src="require('../assets/logo.png')"
           contain
           height="200"
         ></v-img>
-      </v-flex>
+      </v-badge>
       <v-flex>
         <h1 class="display-2 font-weight-bold">
-          <span class="green--text text--accent-2">TIME</span> TRACK.
+          <span class="primary--text">TIME</span> TRACK.
         </h1>
       </v-flex>
       <v-flex>
@@ -20,6 +20,7 @@
             :rules="userNameRules"
             label="John Doe"
             required
+            dark
           ></v-text-field>
           <v-text-field
             v-model="user.email"
@@ -29,12 +30,12 @@
           ></v-text-field>
           <v-text-field
             v-model="user.password"
-            :append-icon="show1 ? 'visibility_off' : 'visibility'"
+            :append-icon="showPass ? 'visibility_off' : 'visibility'"
             :rules="passwordRules"
             :counter="5"
             label="5+ characters"
-            :type="show1 ? 'text' : 'password'"
-            @click:append="show1 = !show1"
+            :type="showPass ? 'text' : 'password'"
+            @click:append="showPass = !showPass"
             required
           ></v-text-field>
           <v-btn
@@ -56,7 +57,6 @@
         <a href="#">Terms and Conditions</a> and <a href="">Privacy Policy</a>
       </p>
     </v-layout>
-    <textarea v-model="response"></textarea>
   </v-container>
 </template>
 
@@ -67,13 +67,14 @@ export default {
   name: 'signUp',
   data: () => ({
     valid: false,
-    show1: false,
+    showPass: false,
     user: {
       fullName: '',
       email: '',
       password: '',
     },
     response: '',
+    token: '',
     userNameRules: [
       v => !!v || 'Name is required',
     ],
@@ -87,25 +88,37 @@ export default {
     ],
   }),
   methods: {
-    mounted() {
-    },
     signUp() {
       if (this.valid) {
         console.log(`Form submitted with: ${this.user.fullName}, ${this.user.email} and ${this.user.password}`);
         // TODO: push the data to the server and database
         axios({
           method: 'POST',
-          url: 'http://localhost:8080/api/sign-up',
+          url: 'http://localhost:3000/api/sign-up',
+          headers: { 'content-type': 'application/json' },
           data: this.user,
-          // headers: { 'content-type': 'application/json' },
-          headers: { 'content-type': 'application/x-www-form-urlencoded' },
         })
-          .then((result) => {
-            this.response = result.data;
-            // TODO: umesto rerutinga na /sign-in, uradi auto sign-in
-            this.$router.push('/sign-in'); // re-route to sign in
-          }, (error) => {
-            console.error(error);
+          .then((suResult) => {
+            this.response = suResult.status;
+            console.log(this.response, suResult.data);
+            if (suResult.status === 201) {
+              console.log(`Korisnik kreiran, prijava za: ${this.user.email} sifra: ${this.user.password}`);
+              axios({
+                method: 'POST',
+                url: 'http://localhost:3000/api/sign-in',
+                headers: { 'content-type': 'application/json' },
+                data: { email: this.user.email, password: this.user.password },
+              })
+                .then((siResult) => {
+                  this.token = siResult.token;
+                  console.log(siResult);
+                  this.$router.push('/dashboard');
+                }, (siError) => {
+                  console.log(siError);
+                });
+            }
+          }, (suError) => {
+            console.error(suError);
           });
       }
     },

@@ -1,13 +1,11 @@
 // app/models/users.js
 
 var mongoose     = require('mongoose');
-var Schema       = mongoose.Schema;
 
-var UserSchema   = new Schema({
+var UserSchema   = new mongoose.Schema({
     fullName: {
         type:String,
         trim: true,
-        required: true
     },
     email: {
         type: String,
@@ -16,6 +14,7 @@ var UserSchema   = new Schema({
         minlength: 5,
         maxlength: 50,
         required: true,
+        unique: true,
     },
     password: {
         type: String,
