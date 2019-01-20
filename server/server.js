@@ -11,7 +11,7 @@ const app        = express();                // inicijalizacija servera
 const config     = require('./config');      // konfiguracijski fajl sa parametrima za server
 const port = process.env.PORT || config.port; // uzima port iz produkc. servera ili mog fajla
 
-mongoose.connect(config.database, {useNewUrlParser: true}); // povezivanje sa mongo bazom
+mongoose.connect(config.database, {useNewUrlParser: true, useCreateIndex: true}); // povezivanje sa mongo bazom
 
 // app.set('superSecret', config.secret);  // postavlja zastitu za auth
 
@@ -23,19 +23,19 @@ app.use(bodyParser.json());
 
 app.use(morgan('dev')); // pokreni morgan development logger
 
-// ROUTES FOR API
+// DEFINICIJE RUTA
 // =============================================================================
 const mainRouter = express.Router();
 const usersRouter = require('./app/routes/usersroute');
 const timersRouter = require('./app/routes/timersroute');
 
-// test route to make sure everything is working (accessed at GET http://localhost:3000/api)
+// test route (GET http://localhost:3000/api)
 mainRouter.get('/', (req, res) => {
     res.json({ message: 'TimeTracking-app CRUD API' });   
 });
 
-/*// middleware to use for all requests
-router.use((req, res, next) => {
+// middleware to use for all requests
+/*router.use((req, res, next) => {
     // do validations here to make sure that everything coming from a request is safe
 
     // check header or url parameters or post parameters for token
@@ -61,12 +61,12 @@ router.use((req, res, next) => {
     }
 });*/
 
-// REGISTER ROUTES -------------------------------
+// AKTIVACIJA RUTA -------------------------------
 app.use('/api', mainRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/timers', timersRouter);
 
-// START THE SERVER
+// START
 // =============================================================================
 app.listen(port, () => {
     console.log(`Express server listening on http://localhost:${port}`);
