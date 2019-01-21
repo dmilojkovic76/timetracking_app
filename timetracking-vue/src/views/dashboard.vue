@@ -1,27 +1,74 @@
 <template>
-  <v-content>
-    <v-flex blue-grey darken-4>
-      <p class="text-xs-right mr-4 py-5"><a href="#">SIGN OUT</a></p>
-    </v-flex>
-    <v-container mx-2 >
-      <v-flex>
-        date
+  <v-container fluid ma-0 pa-0 text-xs-center>
+    <Navbar />
+    <v-layout row justify-center align-center mb-5>
+      <v-flex xs10 sm8 md5 text-xs-left>
+        {{ vreme }}
       </v-flex>
-      <v-flex>
-        <h1 class="text-xs-center">TOTAL TIME SPENT TODAY</h1>
-        <v-flex text-xs-center>
+    </v-layout>
+    <v-layout row justify-center align-center mb-5>
+      <v-flex xs10 sm8 md5>
+        <h1>TOTAL TIME SPENT TODAY</h1>
+      </v-flex>
+    </v-layout>
+    <v-layout row justify-space-around mb-4 py-5>
+        <v-layout column ml-3 pl-3>
           <v-flex>
-            <h1>00 : 00</h1>
+            <h2 class="display-4">00</h2>
+          </v-flex>
+          <v-flex mt-3>
+            <h4>HOURS</h4>
+          </v-flex>
+        </v-layout>
+        <v-layout column shrink>
+          <v-flex>
+            <h2 class="display-4">:</h2>
           </v-flex>
           <v-flex>
-            <h4>hours</h4>
-            <h4>minutes</h4>
+            <h4> </h4>
           </v-flex>
-        </v-flex>
-        <v-btn block>reports</v-btn>
-        <v-btn block>clock in</v-btn>
-        <p class="text-xs-center">Clicking <strong>CLOCK IN</strong> button will start the time counter.</p>
+        </v-layout>
+        <v-layout column mr-3 pr-3>
+          <v-flex>
+            <h2 class="display-4">00</h2>
+          </v-flex>
+          <v-flex mt-3>
+            <h4>MINUTES</h4>
+          </v-flex>
+        </v-layout>
+    </v-layout>
+    <v-layout row justify-center align-center>
+      <v-flex xs10 sm8 md5>
+        <v-btn color="grey lighten-2" block mb-5>reports</v-btn>
+        <v-btn color="primary" dark block mb-5>clock in</v-btn>
       </v-flex>
-    </v-container>
-  </v-content>
+    </v-layout>
+    <v-layout justify-center align-center>
+      <p class="text-xs-center grey--text">
+        Clicking <strong>CLOCK IN</strong> button will start the time counter.
+      </p>
+    </v-layout>
+  </v-container>
 </template>
+
+<script>
+import Navbar from '@/components/Navbar.vue';
+
+export default {
+  name: 'dashboard',
+  data: () => ({
+    vreme: '',
+  }),
+  mounted() {
+    this.sat();
+  },
+  methods: {
+    sat() {
+      setInterval(this.vreme = new Date(), 1000);
+    },
+  },
+  components: {
+    Navbar,
+  },
+};
+</script>

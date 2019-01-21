@@ -1,40 +1,38 @@
 <template>
-  <v-container fluid>
-    <v-layout column justify-center align-center>
-      <v-flex>
-        <v-img
-          :src="require('../assets/logo.png')"
-          contain
-          height="200"
-        ></v-img>
-      </v-flex>
-      <v-flex>
-        <h1 class="display-2 font-weight-bold">
-          <span class="green--text text--accent-2">TIME</span> TRACK.
-        </h1>
-      </v-flex>
-      <v-flex>
+  <v-container fluid ma-0 pa-0 text-xs-center white--text secondary>
+    <v-layout row justify-center align-center>
+      <NavbarSigning />
+    </v-layout>
+    <v-layout row justify-center align-center>
+      <v-flex xs10 sm8 md5>
         <v-form ref="form" v-model="valid" @submit.prevent="signIn">
           <v-text-field
             v-model="user.email"
             :rules="emailRules"
-            label="email@example.com"
+            label="EMAIL"
+            placeholder="email@example.com"
             required
+            clearable
+            dark
           ></v-text-field>
           <v-text-field
             v-model="user.password"
             :append-icon="show1 ? 'visibility_off' : 'visibility'"
             :rules="passwordRules"
-            :counter="5"
-            label="5+ characters"
+            :counter="8"
+            label="PASSWORD"
+            placeholder="5+ characters"
             :type="show1 ? 'text' : 'password'"
             @click:append="show1 = !show1"
             required
+            dark
+            class="mb-5"
           ></v-text-field>
           <v-btn
             :disabled="!valid"
-            color="green accent-2"
+            color="primary"
             block
+            dark
             @click="validate"
             type="submit"
           >
@@ -42,13 +40,18 @@
           </v-btn>
         </v-form>
       </v-flex>
-      Not a member? <a href="/sign-up" class="green--text text--accent-2">SIGN UP</a>
     </v-layout>
-    <textarea v-model="response"></textarea>
+    <v-layout row>
+      <v-flex xs10 >
+        Not a member? <a href="/sign-up" class="primary--text">SIGN UP</a>
+      </v-flex>
+    </v-layout>
   </v-container>
 </template>
 
 <script>
+import NavbarSigning from '@/components/NavbarSigning.vue';
+
 export default {
   name: 'signIn',
   data: () => ({
@@ -79,6 +82,9 @@ export default {
     validate() {
       // some extra validation should go here
     },
+  },
+  components: {
+    NavbarSigning,
   },
 };
 </script>

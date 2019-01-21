@@ -1,47 +1,46 @@
 <template>
-  <v-container fluid>
-    <v-layout column justify-center align-center>
-      <v-badge>
-        <v-img
-          :src="require('../assets/logo.png')"
-          contain
-          height="200"
-        ></v-img>
-      </v-badge>
-      <v-flex>
-        <h1 class="display-2 font-weight-bold">
-          <span class="primary--text">TIME</span> TRACK.
-        </h1>
-      </v-flex>
-      <v-flex>
+  <v-container fluid ma-0 pa-0 text-xs-center white--text secondary>
+    <v-layout row justify-center align-center>
+      <NavbarSigning />
+    </v-layout>
+    <v-layout row justify-center align-center>
+      <v-flex xs10 sm8 md5>
         <v-form ref="form" v-model="valid" @submit.prevent="signUp">
           <v-text-field
             v-model="user.fullName"
             :rules="userNameRules"
-            label="John Doe"
+            label="FULL NAME"
+            placeholder="John Doe"
             required
+            clearable
             dark
           ></v-text-field>
           <v-text-field
             v-model="user.email"
             :rules="emailRules"
-            label="email@example.com"
+            label="EMAIL"
+            placeholder="email@example.com"
             required
+            clearable
+            dark
           ></v-text-field>
           <v-text-field
             v-model="user.password"
             :append-icon="showPass ? 'visibility_off' : 'visibility'"
             :rules="passwordRules"
-            :counter="5"
-            label="5+ characters"
+            :counter="8"
+            label="PASSWORD"
+            placeholder="5+ characters"
             :type="showPass ? 'text' : 'password'"
             @click:append="showPass = !showPass"
             required
+            dark
           ></v-text-field>
           <v-btn
             :disabled="!valid"
-            color="green accent-2"
+            color="primary"
             block
+            dark
             @click="validate"
             type="submit"
           >
@@ -49,19 +48,28 @@
           </v-btn>
         </v-form>
       </v-flex>
-      <p>
-      Already a member? <a href="/sign-in" class="green--text text--accent-2">SIGN IN</a>
-      </p>
-      <p>
+    </v-layout>
+    <v-layout column>
+      <v-flex xs10>
+      Already a member? <a href="/sign-in" class="primary--text">SIGN IN</a>
+      </v-flex>
+      <v-flex xs10 class="grey--text">
         By clicking Sign Up, you agree to TIME TRACK's<br>
-        <a href="#">Terms and Conditions</a> and <a href="">Privacy Policy</a>
-      </p>
+        <strong>
+          <a class="grey--text" href="#">Terms and Conditions</a>
+        </strong>
+        and
+        <strong>
+          <a class="grey--text" href="">Privacy Policy</a>
+        </strong>
+      </v-flex>
     </v-layout>
   </v-container>
 </template>
 
 <script>
 import axios from 'axios';
+import NavbarSigning from '@/components/NavbarSigning.vue';
 
 export default {
   name: 'signUp',
@@ -90,8 +98,6 @@ export default {
   methods: {
     signUp() {
       if (this.valid) {
-        console.log(`Form submitted with: ${this.user.fullName}, ${this.user.email} and ${this.user.password}`);
-        // TODO: push the data to the server and database
         axios({
           method: 'POST',
           url: 'http://localhost:3000/api/sign-up',
@@ -100,9 +106,7 @@ export default {
         })
           .then((suResult) => {
             this.response = suResult.status;
-            console.log(this.response, suResult.data);
             if (suResult.status === 201) {
-              console.log(`Korisnik kreiran, prijava za: ${this.user.email} sifra: ${this.user.password}`);
               axios({
                 method: 'POST',
                 url: 'http://localhost:3000/api/sign-in',
@@ -111,7 +115,6 @@ export default {
               })
                 .then((siResult) => {
                   this.token = siResult.token;
-                  console.log(siResult);
                   this.$router.push('/dashboard');
                 }, (siError) => {
                   console.log(siError);
@@ -125,6 +128,9 @@ export default {
     validate() {
       // some extra validation should go here
     },
+  },
+  components: {
+    NavbarSigning,
   },
 };
 </script>
