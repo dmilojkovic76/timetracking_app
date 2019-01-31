@@ -14,10 +14,13 @@
         "cors": "^2.8.5",
         "express": "^4.16.4",
         "jsonwebtoken": "^8.4.0",
+        "morgan": "^1.9.1",
         "mongoose": "^5.4.3"
     },
     "devDependencies": {
-        "morgan": "^1.9.1",
+        "eslint": "^5.12.1",
+        "eslint-config-airbnb-base": "^13.1.0",
+        "eslint-plugin-import": "^2.15.0",
         "nodemon": "^1.18.9"
     }
 }
