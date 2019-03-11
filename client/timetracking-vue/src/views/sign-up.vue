@@ -5,7 +5,7 @@
     </v-layout>
     <v-layout row justify-center align-center>
       <v-flex xs10 sm8 md5>
-        <v-form ref="form" v-model="valid" @submit.prevent="signUp">
+        <v-form ref="form" v-model="valid" @submit.prevent="dispatchSignUp()">
           <v-text-field
             v-model="user.fullName"
             :rules="userNameRules"
@@ -68,21 +68,19 @@
 </template>
 
 <script>
-import axios from 'axios';
 import NavbarSigning from '@/components/NavbarSigning.vue';
+
+import { mapState } from 'vuex';
 
 export default {
   name: 'signUp',
+  computed: mapState([
+    'user',
+    'srvResponce',
+  ]),
   data: () => ({
     valid: false,
     showPass: false,
-    user: {
-      fullName: '',
-      email: '',
-      password: '',
-    },
-    response: '',
-    token: '',
     userNameRules: [
       v => !!v || 'Name is required',
     ],
@@ -96,32 +94,14 @@ export default {
     ],
   }),
   methods: {
-    signUp() {
+    dispatchSignUp() {
       if (this.valid) {
-        axios({
-          method: 'POST',
-          url: 'http://localhost:3000/api/sign-up',
-          headers: { 'content-type': 'application/json' },
-          data: this.user,
-        })
-          .then((suResult) => {
-            this.response = suResult.status;
-            if (suResult.status === 201) {
-              axios({
-                method: 'POST',
-                url: 'http://localhost:3000/api/sign-in',
-                headers: { 'content-type': 'application/json' },
-                data: { email: this.user.email, password: this.user.password },
-              })
-                .then((siResult) => {
-                  this.token = siResult.token;
-                  this.$router.push('/dashboard');
-                }, (siError) => {
-                  console.log(siError);
-                });
+        this.$store.dispatch('signUp', { fullName: this.user.fullName, email: this.user.email, password: this.user.password })
+          .then((r) => {
+            console.log(`Iz SignUp dispatcha vraceno ${r}`);
+            if (r === 200) {
+              this.$router.push('/dashboard');
             }
-          }, (suError) => {
-            console.error(suError);
           });
       }
     },

@@ -1,6 +1,8 @@
 <template>
   <v-container fluid ma-0 pa-0 text-xs-center>
     <Navbar />
+    {{ srvResponce.token }}
+    {{ user }}
     <v-layout row justify-center align-center mb-5>
       <v-flex xs10 sm8 md5 text-xs-left>
         {{ vreme }}
@@ -52,10 +54,17 @@
 </template>
 
 <script>
+// import axios from 'axios';
 import Navbar from '@/components/Navbar.vue';
+
+import { mapState } from 'vuex';
 
 export default {
   name: 'dashboard',
+  computed: mapState([
+    'user',
+    'srvResponce',
+  ]),
   data: () => ({
     vreme: '',
   }),
@@ -64,7 +73,7 @@ export default {
   },
   methods: {
     sat() {
-      setInterval(this.vreme = new Date(), 1000);
+      // setInterval(this.vreme = new Date(), 1000);
     },
   },
   components: {

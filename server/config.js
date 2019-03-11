@@ -1,5 +1,6 @@
 module.exports = {
   secret: 'mysupersecretsecret',
   database: 'mongodb://localhost:27017/timetracking-app',
-  port: 3000,
+  serverPort: 3000,
+  allowedIPs: ['http://localhost:8080', 'http://127.0.0.1:8080'],
 };

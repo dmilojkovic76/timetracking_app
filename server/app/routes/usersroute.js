@@ -1,5 +1,6 @@
 const express = require('express'); // glavna biblioteka za server
 const jwt = require('jsonwebtoken'); // create, sign, and verify jwt tokens
+const config = require('../../config'); // konfiguracijski fajl sa parametrima za server
 
 const router = express.Router();
 
@@ -12,17 +13,17 @@ router.post('/sign-in', (req, res) => {
   User.findOne({ email: req.body.email }, (err, user) => {
     if (err) throw err;
     if (!user) {
-      res.json({ success: false, message: `Neuspešno prijavljivanje! Nije moguće pronaći ${req.body.email}` });
+      res.status(401).json({ success: false, message: `Neuspešno prijavljivanje! Nije moguće pronaći ${req.body.email}` });
     } else if (user) {
     // proveri da li se sifre podudaraju
       if (user.password !== req.body.password) {
-        res.json({ success: false, message: 'Neuspešno prijavljivanje!. Pogrešna lozinka.' });
+        res.status(401).json({ success: false, message: 'Neuspešno prijavljivanje!. Pogrešna lozinka.' });
       } else { // ako imamo korisnika i lozinke se podudaraju kreiraj token i autorizuj
-        const payload = { email: user.email }; // kreiram payload samo sa emailom
+        const payload = { _id: user._id, fullName: user.fullName, email: user.email }; // kreiram payload samo sa imenom i emailom
         // da ne bi poslao i lozinku jer jwt moze da se dekodira
-        const token = jwt.sign(payload, app.get('superSecret'), { expiresIn: '24h' });
+        const token = jwt.sign(payload, config.secret, { expiresIn: '24h' });
 
-        res.json({
+        res.status(200).json({
           success: true,
           token,
         });
@@ -40,11 +41,11 @@ router.post('/sign-up', (req, res) => {
     if (!pronadjen) {
       // snimi korisnika i proveri da li ima gresaka
       user.save((_err) => {
-        if (_err) res.send(_err);
+        if (_err) res.status(400).send(_err);
         res.status(201).json({ success: true, message: 'Korisnik kreiran!' });
       });
     } else { // korisnik vec postoji
-      res.json({ success: false, message: 'Korisnik sa ovom e-mail adresom vec postoji!' });
+      res.status(401).json({ success: false, message: 'Korisnik sa ovom e-mail adresom vec postoji!' });
     }
   });
 });
@@ -52,8 +53,8 @@ router.post('/sign-up', (req, res) => {
 // Izlistavanje svih korisnika (GET http://localhost:3000/api/users)
 router.get('/', (req, res) => {
   User.find((err, users) => {
-    if (err) res.send(err);
-    res.json(users);
+    if (err) res.status(400).send(err);
+    res.status(200).json(users);
   });
 });
 
@@ -62,23 +63,23 @@ router.route('/:user_id')
   // Pronadji korisnika sa user_id (GET http://localhost:3000/api/users/:user_id)
   .get((req, res) => {
     User.findById(req.params.user_id, (err, user) => {
-      if (err) res.send(err);
-      res.json(user);
+      if (err) res.status(400).send(err);
+      res.status(200).json(user);
     });
   })
   // izmeni korisnika sa user_id (PUT http://localhost:3000/api/users/:user_id)
   .put((req, res) => {
     // prvo pronadji korisnika pomocu User modela
     User.findById(req.params.user_id, (err, user) => {
-      if (err) res.send(err);
+      if (err) res.status(400).send(err);
       // pripremi parametre
       user.fullName = req.body.fullName;
       user.email = req.body.email;
       user.password = req.body.password;
       // i sacuvaj izmene
       user.save((_err) => {
-        if (_err) res.send(_err);
-        res.json({ message: 'Promene su sačuvane.' });
+        if (_err) res.status(400).send(_err);
+        res.status(200).json({ message: 'Promene su sačuvane.' });
       });
     });
   })
@@ -87,8 +88,8 @@ router.route('/:user_id')
     User.deleteOne({
       _id: req.params.user_id,
     }, (err, user) => {
-      if (err) res.send(err);
-      res.json({ message: 'Korisnik je obrisan!' });
+      if (err) res.status(400).send(err);
+      res.status(200).json({ message: `Korisnik ${user} je obrisan!` });
     });
   });
 

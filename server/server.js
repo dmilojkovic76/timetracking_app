@@ -1,5 +1,3 @@
-'use strict'
-
 const express = require('express'); // glavna biblioteka za server
 const bodyParser = require('body-parser'); // omogucava detekciju JSON podataka
 const morgan = require('morgan'); // console logger komunikacija
@@ -9,14 +7,24 @@ const config = require('./config'); // konfiguracijski fajl sa parametrima za se
 
 const app = express(); // inicijalizacija servera
 
-const port = process.env.PORT || config.port; // uzima port iz produkc. servera ili mog fajla
+const port = process.env.PORT || config.serverPort; // uzima port iz produkc. servera ili mog fajla
 
 // povezivanje sa mongo bazom
 mongoose.connect(config.database, { useNewUrlParser: true, useCreateIndex: true });
 
 // app.set('superSecret', config.secret);  // postavlja zastitu za auth
 
-app.use(cors()); // inicijalizacija cors funkcija
+// TODO: ovde dodaj dozvoljene adrese i uslove iz config fajla
+app.use(cors({
+  origin: (origin, callback) => {
+    if (config.allowedIPs.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
+})); // inicijalizacija cors funkcija
 
 // konfigurisanje bodyParser() za prikupljanje podataka iz POST metoda
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -70,5 +78,5 @@ app.use('/api/timers', timersRouter);
 // START
 // =============================================================================
 app.listen(port, () => {
-  console.log(`Express server listening on http://localhost:${port}`);
+  if (!process.env.PORT) console.log(`Express server listening on http://localhost:${port}`);
 });

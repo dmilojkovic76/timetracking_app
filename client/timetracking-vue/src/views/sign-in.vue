@@ -5,7 +5,7 @@
     </v-layout>
     <v-layout row justify-center align-center>
       <v-flex xs10 sm8 md5>
-        <v-form ref="form" v-model="valid" @submit.prevent="signIn">
+        <v-form ref="form" v-model="valid" @submit.prevent="dispatchSignIn()">
           <v-text-field
             v-model="user.email"
             :rules="emailRules"
@@ -52,16 +52,23 @@
 <script>
 import NavbarSigning from '@/components/NavbarSigning.vue';
 
+import { mapState, mapGetters } from 'vuex';
+
 export default {
   name: 'signIn',
+  computed: {
+    ...mapState([
+      'user',
+      'srvResponce',
+    ]),
+    ...mapGetters({
+      user: 'getUser',
+      srvResponce: 'getSrvResponce',
+    }),
+  },
   data: () => ({
     valid: false,
     show1: false,
-    user: {
-      email: '',
-      password: '',
-    },
-    response: '',
     emailRules: [
       v => !!v || 'E-mail is required',
       v => /.+@.+/.test(v) || 'E-mail must be valid',
@@ -72,15 +79,29 @@ export default {
     ],
   }),
   methods: {
-    signIn() {
+    dispatchSignIn() {
       if (this.valid) {
-        console.log(`Form submitted with: ${this.user.email} and ${this.user.password}`);
-        // TODO: push the data to the server and database
-        this.$router.push('/dashboard');
+        this.$store.dispatch('signIn', { email: this.user.email, password: this.user.password });
+        // .then(() => {
+        //   if (this.srvResponce.status === 200) {
+        //     this.$router.push('/dashboard');
+        //   }
+        // });
       }
     },
     validate() {
       // some extra validation should go here
+    },
+  },
+  watch: {
+    srvResponce: (resp) => {
+      // if (this.srvResponce.status === 200) {
+      //   this.$router.push('/dashboard');
+      // }
+      console.log(`srvResponce se promenio ${resp}`);
+    },
+    user: (usr) => {
+      console.log(`user se promenio ${usr}`);
     },
   },
   components: {
