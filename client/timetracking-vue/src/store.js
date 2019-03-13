@@ -21,44 +21,53 @@ export default new Vuex.Store({
   },
   actions: {
     signIn({ commit }, _data) {
-      axios({
-        method: 'POST',
-        url: 'http://localhost:3000/api/users/sign-in',
-        headers: { 'content-type': 'application/json' },
-        data: _data,
-      })
-        .then((siResult) => {
-          commit('setResponce', { responce: siResult });
-          commit('setResStatus', { resStatus: siResult.status });
-          if (siResult.status === 200) {
-            commit('setActiveToken', { token: siResult.data.token });
-          }
-        }, (siError) => {
-          console.log('Vuex SignIn action error:');
-          console.log(siError);
-        });
+      return new Promise((resolve, reject) => {
+        axios({ // prvo pozivam DB server i saljem mu podatke koji su stigli od sign-in komponente
+          method: 'POST',
+          url: 'http://localhost:3000/api/users/sign-in',
+          headers: { 'content-type': 'application/json' },
+          data: _data,
+        })
+          .then((siResult) => { // kada se vrate podaci sa DB servera
+            commit('setResponce', { responce: siResult }); // postavi taj odgovor u state
+            commit('setResStatus', { resStatus: siResult.status }); // postavi status tog odgovora u state
+            if (siResult.status === 200) { // ako je status 200, tj uspesno pronadjen korisnik
+              commit('setActiveToken', { token: siResult.data.token }); // postavi token u state
+              commit('setActiveUser', { user: siResult.data.user }); // i postavi podatke korisnika u state
+            }
+            resolve(siResult);
+          }, (siAxiosErr) => {
+            reject(siAxiosErr);
+          });
+      }, (siError) => { // ako se desila bilo koja greska, ovo se izvrsava
+        console.log('Vuex SignIn action error:');
+        console.log(siError);
+      });
     },
     signUp({ commit, state }, _data) {
-      axios({
-        method: 'POST',
-        url: 'http://localhost:3000/api/users/sign-up',
-        headers: { 'content-type': 'application/json' },
-        data: _data,
-      })
-        .then((suResult) => {
-          console.log('Vuex SignUp action result:');
-          console.log(suResult);
-          if (suResult.status === 201) {
-            this.signIn(commit, state, { email: this.user.email, password: this.user.password })
-              .then((ret) => {
-                console.log('Vuex auro-SignIn posle SignUp action result:');
-                console.log(ret);
-              });
-          }
-        }, (suError) => {
-          console.log('Vuex SignIn action error:');
-          console.error(suError);
-        });
+      return new Promise((resolve, reject) => {
+        axios({ // prvo pozivam DB server i saljem mu podatke koji su stigli od sign-up komponente
+          method: 'POST',
+          url: 'http://localhost:3000/api/users/sign-up',
+          headers: { 'content-type': 'application/json' },
+          data: _data,
+        })
+          .then((suResult) => { // kada se vrate podaci sa DB servera
+            commit('setResponce', { responce: suResult }); // postavi taj odgovor u state
+            commit('setResStatus', { resStatus: suResult.status }); // postavi status tog odgovora u state
+            if (suResult.status === 201) { // ako je status 201, tj uspesno kreiran korisnik
+              this.signIn(commit, state, { email: this.user.email, password: this.user.password })
+                .then((ret) => {
+                  resolve(ret);
+                });
+            }
+          }, (suAxiosErr) => {
+            reject(suAxiosErr);
+          });
+      }, (suError) => { // ako se desila bilo koja greska, ovo se izvrsava
+        console.log('Vuex SignIn action error:');
+        console.error(suError);
+      });
     },
   },
   mutations: { // Ovako postavljene rade

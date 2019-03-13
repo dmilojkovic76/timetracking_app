@@ -26,6 +26,10 @@ router.post('/sign-in', (req, res) => {
         res.status(200).json({
           success: true,
           token,
+          user: {
+            fullName: user.fullName,
+            email: user.email,
+          },
         });
       }
     }
