@@ -5,6 +5,16 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "type": "node",
+            "request": "launch",
+            "name": "Server",
+            "program": "${workspaceRoot}/server/server.js",
+            "cwd": "${workspaceRoot}/server/",
+            "env": {
+                "NODE_ENV": "development"
+            },
+        },
+        {
             "type": "chrome",
             "request": "launch",
             "name": "Vue.js: Chrome",

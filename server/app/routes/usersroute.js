@@ -1,4 +1,5 @@
 const express = require('express'); // glavna biblioteka za server
+const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken'); // create, sign, and verify jwt tokens
 const config = require('../../config'); // konfiguracijski fajl sa parametrima za server
 
@@ -29,6 +30,7 @@ router.post('/sign-in', (req, res) => {
           user: {
             fullName: user.fullName,
             email: user.email,
+            id: user._id,
           },
         });
       }
@@ -46,7 +48,15 @@ router.post('/sign-up', (req, res) => {
       // snimi korisnika i proveri da li ima gresaka
       user.save((_err) => {
         if (_err) res.status(400).send(_err);
-        res.status(201).json({ success: true, message: 'Korisnik kreiran!' });
+        res.status(201).json({
+          success: true,
+          message: 'Korisnik kreiran!',
+          user: {
+            fullName: user.fullName,
+            email: user.email,
+            id: user._id,
+          },
+        });
       });
     } else { // korisnik vec postoji
       res.status(401).json({ success: false, message: 'Korisnik sa ovom e-mail adresom vec postoji!' });

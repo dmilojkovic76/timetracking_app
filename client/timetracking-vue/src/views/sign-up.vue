@@ -5,7 +5,8 @@
     </v-layout>
     <v-layout row justify-center align-center>
       <v-flex xs10 sm8 md5>
-        <v-form ref="form" v-model="valid" @submit.prevent="dispatchSignUp()">
+        <div v-show="loading" class="lds-ripple"><div></div><div></div></div>
+        <v-form v-show="!loading" ref="form" v-model="valid" @submit.prevent="dispatchSignUp()">
           <v-text-field
             v-model="user.fullName"
             :rules="userNameRules"
@@ -26,16 +27,22 @@
           ></v-text-field>
           <v-text-field
             v-model="user.password"
-            :append-icon="showPass ? 'visibility_off' : 'visibility'"
+            :append-icon="showPassword ? 'visibility_off' : 'visibility'"
             :rules="passwordRules"
             :counter="8"
             label="PASSWORD"
             placeholder="5+ characters"
-            :type="showPass ? 'text' : 'password'"
-            @click:append="showPass = !showPass"
+            :type="showPassword ? 'text' : 'password'"
+            @click:append="showPassword = !showPassword"
             required
             dark
           ></v-text-field>
+          <v-alert
+            :value="hasErrorState"
+            type="error"
+          >
+            {{ hasErrorState }}
+          </v-alert>
           <v-btn
             :disabled="!valid"
             color="primary"
@@ -79,8 +86,10 @@ export default {
     'srvResponce',
   ]),
   data: () => ({
+    loading: false,
+    hasErrorState: false,
     valid: false,
-    showPass: false,
+    showPassword: false,
     userNameRules: [
       v => !!v || 'Name is required',
     ],
@@ -96,12 +105,23 @@ export default {
   methods: {
     dispatchSignUp() {
       if (this.valid) {
+        this.loading = true;
         this.$store.dispatch('signUp', { fullName: this.user.fullName, email: this.user.email, password: this.user.password })
-          .then((r) => {
-            console.log(`Iz SignUp dispatcha vraceno ${r}`);
-            if (r === 200) {
-              this.$router.push('/dashboard');
+          .then((resp) => {
+            if (resp.status === 201) {
+              this.$store.dispatch('signIn', { email: this.user.email, password: this.user.password })
+                .then((res) => {
+                  if (res.status === 200) {
+                    this.loading = false;
+                    this.$router.push('/dashboard');
+                  }
+                });
             }
+          })
+          .then(() => { this.loading = false; })
+          .catch((err) => {
+            this.loading = false;
+            this.hasErrorState = this.srvResponce.responce.message;
           });
       }
     },
@@ -114,3 +134,38 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.lds-ripple {
+  display: inline-block;
+  position: relative;
+  width: 64px;
+  height: 64px;
+}
+.lds-ripple div {
+  position: absolute;
+  border: 4px solid #fff;
+  opacity: 1;
+  border-radius: 50%;
+  animation: lds-ripple 1s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+}
+.lds-ripple div:nth-child(2) {
+  animation-delay: -0.5s;
+}
+@keyframes lds-ripple {
+  0% {
+    top: 28px;
+    left: 28px;
+    width: 0;
+    height: 0;
+    opacity: 1;
+  }
+  100% {
+    top: -1px;
+    left: -1px;
+    width: 58px;
+    height: 58px;
+    opacity: 0;
+  }
+}
+</style>

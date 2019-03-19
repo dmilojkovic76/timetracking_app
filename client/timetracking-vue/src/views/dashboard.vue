@@ -42,7 +42,7 @@
     <v-layout row justify-center align-center>
       <v-flex xs10 sm8 md5>
         <v-btn color="grey lighten-2" block mb-5>reports</v-btn>
-        <v-btn color="primary" dark block mb-5>clock in</v-btn>
+        <v-btn color="primary" dark block mb-5 @click="startClock()">clock in</v-btn>
       </v-flex>
     </v-layout>
     <v-layout justify-center align-center>
@@ -56,6 +56,8 @@
 <script>
 // import axios from 'axios';
 import Navbar from '@/components/Navbar.vue';
+
+import axios from 'axios';
 
 import { mapState } from 'vuex';
 
@@ -74,6 +76,19 @@ export default {
   methods: {
     sat() {
       // setInterval(this.vreme = new Date(), 1000);
+    },
+    startClock() {
+      const payload = {
+        userId: this.user.id,
+        startTime: new Date(),
+      };
+      axios({
+        method: 'POST',
+        url: 'http://localhost:3000/api/timers/',
+        headers: { 'content-type': 'application/json' },
+        data: payload,
+      })
+        .then(res => console.log(res));
     },
   },
   components: {

@@ -18,17 +18,23 @@
           ></v-text-field>
           <v-text-field
             v-model="user.password"
-            :append-icon="show1 ? 'visibility_off' : 'visibility'"
+            :append-icon="showPassword ? 'visibility_off' : 'visibility'"
             :rules="passwordRules"
             :counter="8"
             label="PASSWORD"
             placeholder="5+ characters"
-            :type="show1 ? 'text' : 'password'"
-            @click:append="show1 = !show1"
+            :type="showPassword ? 'text' : 'password'"
+            @click:append="showPassword = !showPassword"
             required
             dark
             class="mb-5"
           ></v-text-field>
+          <v-alert
+            :value="hasErrorState"
+            type="error"
+          >
+            {{ hasErrorState }}
+          </v-alert>
           <v-btn
             :disabled="!valid"
             color="primary"
@@ -69,8 +75,9 @@ export default {
   },
   data: () => ({
     loading: false,
+    hasErrorState: false,
     valid: false,
-    show1: false,
+    showPassword: false,
     emailRules: [
       v => !!v || 'E-mail is required',
       v => /.+@.+/.test(v) || 'E-mail must be valid',
@@ -86,13 +93,16 @@ export default {
         this.loading = true;
         this.$store.dispatch('signIn', { email: this.user.email, password: this.user.password })
           .then((res) => {
-            console.log(res);
             if (res.status === 200) {
               this.loading = false;
               this.$router.push('/dashboard');
             }
           })
-          .then(() => { this.loading = false; });
+          .then(() => { this.loading = false; })
+          .catch((err) => {
+            this.loading = false;
+            this.hasErrorState = this.srvResponce.responce.message;
+          });
       }
     },
     validate() {

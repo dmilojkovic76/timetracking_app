@@ -9,6 +9,7 @@ router.route('/')
   .post((req, res) => {
     // kreiraj kopiju timera po Timer modelu, pa
     // ga podesi podacima iz request body-ja u kome su prosledjeni
+    console.log(req.body);
     const timer = new Timer(req.body);
     // snimi timer i proveri da li ima gresaka
     timer.save((err) => {
@@ -20,7 +21,7 @@ router.route('/')
   .get((req, res) => {
     Timer.find((err, timers) => {
       if (err) res.send(err);
-      res.json(timers);
+      res.json({ message: 'Lista timera za trazenog korisnika', timers });
     });
   });
 
@@ -50,8 +51,7 @@ router.route('/:timer_id')
   .delete((req, res) => {
     Timer.deleteOne({
       _id: req.params.timer_id,
-    }
-    , (err, timer) => {
+    }, (err, timer) => {
       if (err) res.send(err);
       res.json({ message: 'Timer je obrisan!' });
     });
