@@ -42,7 +42,7 @@
     <v-layout row justify-center align-center>
       <v-flex xs10 sm8 md5>
         <v-btn color="grey lighten-2" block mb-5>reports</v-btn>
-        <v-btn color="primary" dark block mb-5 @click="startClock()">clock in</v-btn>
+        <v-btn color="primary" dark block mb-5 @click="startClock()">{{ isRunning ? "clock out":"clock in" }}</v-btn>
       </v-flex>
     </v-layout>
     <v-layout justify-center align-center>
@@ -69,6 +69,7 @@ export default {
   ]),
   data: () => ({
     vreme: '',
+    isRunning: false,
   }),
   mounted() {
     this.sat();
@@ -78,17 +79,30 @@ export default {
       // setInterval(this.vreme = new Date(), 1000);
     },
     startClock() {
-      const payload = {
-        userId: this.user.id,
-        startTime: new Date(),
-      };
+      let payload = {};
+      if (this.isRunning === false) {
+        payload = {
+          userId: this.user.id,
+          startTime: new Date(),
+        };
+      } else {
+        payload = {
+          userId: this.user.id,
+          endTime: new Date(),
+        };
+      }
+      // TODO: Treba definisati 2 poziva prema db. 1 za kreiranje 1 timer-a
+      // i drugi za dopunu tog timera.
       axios({
         method: 'POST',
         url: 'http://localhost:3000/api/timers/',
         headers: { 'content-type': 'application/json' },
         data: payload,
       })
-        .then(res => console.log(res));
+        .then((res) => {
+          this.isRunning = !this.isRunning;
+          console.log(res);
+        });
     },
   },
   components: {

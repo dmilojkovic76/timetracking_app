@@ -14,7 +14,14 @@ router.route('/')
     // snimi timer i proveri da li ima gresaka
     timer.save((err) => {
       if (err) res.send(err);
-      res.status(201).json({ message: 'Timer kreiran!' });
+      // TODO: Treba vratiti id timera kako bi se posle dodalo zavrsno vreme
+      res.status(201).json({
+        sucess: true,
+        message: 'Timer kreiran!',
+        timer: {
+          id: timer._id,
+        },
+      });
     });
   })
   // izlistaj sve timere (GET http://localhost:3000/api/timers)
@@ -25,7 +32,7 @@ router.route('/')
     });
   });
 
-// Citanje, Izmena i Brisanje odredjenog korisnika
+// Citanje, Izmena i Brisanje odredjenog timera
 router.route('/:timer_id')
   // pronadji timer sa id (GET http://localhost:3000/api/timers/:timer_id)
   .get((req, res) => {
