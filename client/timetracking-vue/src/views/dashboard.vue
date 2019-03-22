@@ -1,11 +1,9 @@
 <template>
   <v-container fluid ma-0 pa-0 text-xs-center>
     <Navbar />
-    {{ srvResponce.token }}
-    {{ user }}
-    <v-layout row justify-center align-center mb-5>
+    <v-layout row justify-center align-left mb-5>
       <v-flex xs10 sm8 md5 text-xs-left>
-        {{ vreme }}
+        <span class="grey--text"><strong>{{ vreme.dan }}</strong> {{ vreme.datum }} {{ vreme.mesec }}, {{ vreme.vreme }}</span>
       </v-flex>
     </v-layout>
     <v-layout row justify-center align-center mb-5>
@@ -41,8 +39,9 @@
     </v-layout>
     <v-layout row justify-center align-center>
       <v-flex xs10 sm8 md5>
+        <div v-show='timer'>{{ timer }}</div>
         <v-btn color="grey lighten-2" block mb-5>reports</v-btn>
-        <v-btn color="primary" dark block mb-5 @click="startClock()">{{ isRunning ? "clock out":"clock in" }}</v-btn>
+        <v-btn color="primary" dark block mb-5 @click="clockBtnClick()">{{ isRunning ? "clock out":"clock in" }}</v-btn>
       </v-flex>
     </v-layout>
     <v-layout justify-center align-center>
@@ -57,52 +56,87 @@
 // import axios from 'axios';
 import Navbar from '@/components/Navbar.vue';
 
-import axios from 'axios';
+import { mapState, mapGetters } from 'vuex';
 
-import { mapState } from 'vuex';
+const moment = require('moment');
 
 export default {
   name: 'dashboard',
-  computed: mapState([
-    'user',
-    'srvResponce',
-  ]),
+  computed: {
+    ...mapState([
+      'user',
+      'timer',
+      'srvResponce',
+      'token',
+    ]),
+    ...mapGetters({
+      user: 'getUser',
+      timer: 'getTimer',
+      srvResponce: 'getSrvResponce',
+      token: 'getToken',
+    }),
+  },
   data: () => ({
-    vreme: '',
+    vreme: {
+      dan: '',
+      datum: '',
+      mesec: '',
+      vreme: '',
+    },
     isRunning: false,
   }),
   mounted() {
-    this.sat();
+    this.$options.interval = setInterval(this.sat, 1000);
+  },
+  beforeDestroy() {
+    clearInterval(this.$options.interval);
   },
   methods: {
     sat() {
-      // setInterval(this.vreme = new Date(), 1000);
+      this.vreme.dan = moment().format('dddd');
+      this.vreme.datum = moment().format('DD');
+      this.vreme.mesec = moment().format('MMMM');
+      this.vreme.vreme = moment().format('HH:mm');
     },
-    startClock() {
+    clockBtnClick() {
       let payload = {};
       if (this.isRunning === false) {
         payload = {
           userId: this.user.id,
           startTime: new Date(),
         };
+        this.$store.dispatch('timerStart', { ...payload })
+          .then((res) => {
+            console.log(`Dashboard clock is running: ${this.isRunning}`);
+            console.log(res.data);
+            this.isRunning = !this.isRunning;
+          })
+          .catch((err) => {
+            console.error('Doslo je do greke prilikom komunikacije sa bazom!');
+            console.error(err);
+            console.error('Server je odgovorio sa:');
+            console.error(this.srvResponce.responce.message);
+          });
       } else {
         payload = {
           userId: this.user.id,
+          timerId: this.timer.id,
+          startTime: this.timer.startTime,
           endTime: new Date(),
         };
+        this.$store.dispatch('timerStop', { ...payload })
+          .then((res) => {
+            console.log(`Dashboard clock is running: ${this.isRunning}`);
+            console.log(res.data);
+            this.isRunning = !this.isRunning;
+          })
+          .catch((err) => {
+            console.error('Doslo je do greke prilikom komunikacije sa bazom!');
+            console.error(err);
+            console.error('Server je odgovorio sa:');
+            console.error(this.srvResponce.responce.message);
+          });
       }
-      // TODO: Treba definisati 2 poziva prema db. 1 za kreiranje 1 timer-a
-      // i drugi za dopunu tog timera.
-      axios({
-        method: 'POST',
-        url: 'http://localhost:3000/api/timers/',
-        headers: { 'content-type': 'application/json' },
-        data: payload,
-      })
-        .then((res) => {
-          this.isRunning = !this.isRunning;
-          console.log(res);
-        });
     },
   },
   components: {

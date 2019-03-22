@@ -10,11 +10,12 @@ const app = express(); // inicijalizacija servera
 const port = process.env.PORT || config.serverPort; // uzima port iz produkc. servera ili mog fajla
 
 // povezivanje sa mongo bazom
-mongoose.connect(config.database, { useNewUrlParser: true, useCreateIndex: true });
+mongoose.connect(config.database, { useNewUrlParser: true, useCreateIndex: true })
+  .catch((err) => { console.log(err); });
 
 // app.set('superSecret', config.secret);  // postavlja zastitu za auth
 
-// TODO: ovde dodaj dozvoljene adrese i uslove iz config fajla
+// podesavanja za cors se ucitavaju iz config fajla
 app.use(cors({
   origin: (origin, callback) => {
     if (config.allowedIPs.indexOf(origin) !== -1) {

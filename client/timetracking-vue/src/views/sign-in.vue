@@ -12,6 +12,7 @@
             :rules="emailRules"
             label="EMAIL"
             placeholder="email@example.com"
+            @focus="hasErrorState = false"
             required
             clearable
             dark
@@ -25,6 +26,8 @@
             placeholder="5+ characters"
             :type="showPassword ? 'text' : 'password'"
             @click:append="showPassword = !showPassword"
+            @focus="hasErrorState = false"
+            @keydown="hasErrorState = false"
             required
             dark
             class="mb-5"
@@ -67,10 +70,12 @@ export default {
     ...mapState([
       'user',
       'srvResponce',
+      'token',
     ]),
     ...mapGetters({
       user: 'getUser',
       srvResponce: 'getSrvResponce',
+      token: 'getToken',
     }),
   },
   data: () => ({
@@ -102,6 +107,7 @@ export default {
           .catch((err) => {
             this.loading = false;
             this.hasErrorState = this.srvResponce.responce.message;
+            console.log(err);
           });
       }
     },

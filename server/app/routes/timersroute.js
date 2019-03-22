@@ -9,18 +9,14 @@ router.route('/')
   .post((req, res) => {
     // kreiraj kopiju timera po Timer modelu, pa
     // ga podesi podacima iz request body-ja u kome su prosledjeni
-    console.log(req.body);
     const timer = new Timer(req.body);
     // snimi timer i proveri da li ima gresaka
     timer.save((err) => {
       if (err) res.send(err);
-      // TODO: Treba vratiti id timera kako bi se posle dodalo zavrsno vreme
       res.status(201).json({
         sucess: true,
         message: 'Timer kreiran!',
-        timer: {
-          id: timer._id,
-        },
+        timer,
       });
     });
   })
@@ -38,7 +34,7 @@ router.route('/:timer_id')
   .get((req, res) => {
     Timer.findById(req.params.timer_id, (err, timer) => {
       if (err) res.send(err);
-      res.json(timer);
+      res.status(200).json(timer);
     });
   })
   // izmeni timer sa id (PUT http://localhost:3000/api/timers/:timer_id)
@@ -50,7 +46,11 @@ router.route('/:timer_id')
       // sacuvaj izmene
       timer.save((_err) => {
         if (_err) res.send(_err);
-        res.json({ message: 'Promene su sačuvane.' });
+        res.status(201).json({
+          sucess: 'True',
+          message: 'Promene su sačuvane.',
+          timer,
+        });
       });
     });
   })
@@ -60,7 +60,7 @@ router.route('/:timer_id')
       _id: req.params.timer_id,
     }, (err, timer) => {
       if (err) res.send(err);
-      res.json({ message: 'Timer je obrisan!' });
+      res.status(200).json({ message: 'Timer je obrisan!' });
     });
   });
 

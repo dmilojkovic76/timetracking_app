@@ -13,11 +13,17 @@ export default new Vuex.Store({
       email: '',
       id: '',
     },
+    timer: {
+      id: '',
+      userId: '',
+      startTime: '',
+      endTime: '',
+    },
     srvResponce: {
-      token: '',
       responce: '',
       resStatus: '',
     },
+    token: '',
   },
   actions: {
     signIn({ commit }, _data) {
@@ -71,23 +77,104 @@ export default new Vuex.Store({
         console.error(suError);
       });
     },
+    signOut({ commit }) {
+      return new Promise((resolve, reject) => {
+        try {
+          commit('setResponce', { responce: '' });
+          commit('setResStatus', { resStatus: '' });
+          commit('setActiveToken', { token: '' });
+          commit('setActiveUser', { user: '' });
+          commit('setTimer', { timer: '' });
+          resolve();
+        } catch (error) {
+          reject(error);
+        }
+      }, (signOutErr) => {
+        console.log('Vuex signOut action nepredvidjena greska');
+        console.log(signOutErr);
+      });
+    },
+    timerStart({ commit }, _data) {
+      return new Promise((resolve, reject) => {
+        axios({
+          method: 'POST',
+          url: 'http://localhost:3000/api/timers/',
+          headers: { 'content-type': 'application/json' },
+          data: _data,
+        })
+          .then((startTimerRes) => {
+            commit('setResponce', { responce: startTimerRes }); // postavi taj odgovor u state
+            commit('setResStatus', { resStatus: startTimerRes.status }); // postavi status tog odgovora u state
+            if (startTimerRes.status === 201) {
+              const timerObj = {
+                id: startTimerRes.data.timer._id,
+                startTime: startTimerRes.data.timer.startTime,
+                userId: startTimerRes.data.timer.userId,
+              };
+              commit('setTimer', { timer: timerObj });
+              resolve(startTimerRes);
+            }
+            reject(startTimerRes);
+          }, (startTimerAxiosErr) => {
+            reject(startTimerAxiosErr);
+          });
+      }, (startTimerErr) => {
+        console.log('Vuex timerStart action nepredvidjena greska');
+        console.log(startTimerErr);
+      });
+    },
+    timerStop({ commit }, _data) {
+      console.log('Vuex timerStop _data payload:');
+      console.log(_data);
+      return new Promise((resolve, reject) => {
+        axios({
+          method: 'PUT',
+          url: `http://localhost:3000/api/timers/${_data.timerId}`,
+          headers: { 'content-type': 'application/json' },
+          data: _data,
+        })
+          .then((timerStopRes) => {
+            if (timerStopRes.status === 201) {
+              const timerObj = {
+                id: timerStopRes.data.timer._id,
+                startTime: timerStopRes.data.timer.startTime,
+                endTime: timerStopRes.data.timer.endTime,
+                userId: timerStopRes.data.timer.userId,
+              };
+              commit('setTimer', { timer: timerObj });
+              resolve(timerStopRes);
+            }
+            reject(timerStopRes);
+          }, (timerStopAxiosErr) => {
+            reject(timerStopAxiosErr);
+          });
+      }, (stopTimerErr) => {
+        console.log('Vuex timerStop action nepredvidjena greska');
+        console.log(stopTimerErr);
+      });
+    },
   },
   mutations: { // Ovako postavljene rade
-    setActiveUser: (state, { user }) => {
-      Vue.set(state, 'user', user);
-    },
-    setActiveToken: (state, { token }) => {
-      Vue.set(state.srvResponce, 'token', token);
-    },
     setResponce: (state, { responce }) => {
       Vue.set(state.srvResponce, 'responce', responce);
     },
     setResStatus: (state, { resStatus }) => {
       Vue.set(state.srvResponce, 'resStatus', resStatus);
     },
+    setActiveUser: (state, { user }) => {
+      Vue.set(state, 'user', user);
+    },
+    setActiveToken: (state, { token }) => {
+      Vue.set(state, 'token', token);
+    },
+    setTimer: (state, { timer }) => {
+      Vue.set(state, 'timer', timer);
+    },
   },
   getters: {
-    getUser: state => state.user,
     getSrvResponce: state => state.srvResponce,
+    getUser: state => state.user,
+    getToken: state => state.token,
+    getTimer: state => state.timer,
   },
 });
