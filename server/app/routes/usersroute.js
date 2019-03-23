@@ -16,48 +16,67 @@ router.post('/sign-in', (req, res) => {
     if (!user) {
       res.status(401).json({ success: false, message: `Neuspešno prijavljivanje! Nije moguće pronaći ${req.body.email}` });
     } else if (user) {
-    // proveri da li se sifre podudaraju
-      if (user.password !== req.body.password) {
-        res.status(401).json({ success: false, message: 'Neuspešno prijavljivanje!. Pogrešna lozinka.' });
-      } else { // ako imamo korisnika i lozinke se podudaraju kreiraj token i autorizuj
-        const payload = { _id: user._id, fullName: user.fullName, email: user.email }; // kreiram payload samo sa imenom i emailom
-        // da ne bi poslao i lozinku jer jwt moze da se dekodira
-        const token = jwt.sign(payload, config.secret, { expiresIn: '24h' });
+      // proveri da li se sifre podudaraju
+      bcrypt.compare(req.body.password, user.password)
+        .then((result) => {
+          if (result === false) {
+            res.status(401).json({
+              success: false,
+              message: 'Neuspešno prijavljivanje!. Pogrešna lozinka.'
+            });
+          } else { // ako imamo korisnika i lozinke se podudaraju kreiraj token i autorizuj
+            const payload = { // kreiram payload samo sa imenom i emailom
+              _id: user._id, // eslint-disable-line
+              fullName: user.fullName,
+              email: user.email,
+            };
+            // da ne bi poslao i lozinku jer jwt moze da se dekodira
+            const token = jwt.sign(payload, config.secret, { expiresIn: '24h' });
 
-        res.status(200).json({
-          success: true,
-          token,
-          user: {
-            fullName: user.fullName,
-            email: user.email,
-            id: user._id,
-          },
+            res.status(200).json({
+              success: true,
+              token,
+              user: {
+                fullName: user.fullName,
+                email: user.email,
+                id: user._id, // eslint-disable-line
+              },
+            });
+          }
         });
-      }
     }
   });
 });
 
 // Dodavanje korisnika (POST http://localhost:3000/api/users/sign-up)
 router.post('/sign-up', (req, res) => {
-  const user = new User(req.body); // kreiraj kopiju korisnika po prethodnom modelu, pa
-  // ga podesi podacima iz request body-ja u kome su prosledjeni
   User.findOne({ email: req.body.email }, (err, pronadjen) => {
     if (err) throw err;
     if (!pronadjen) {
-      // snimi korisnika i proveri da li ima gresaka
-      user.save((_err) => {
-        if (_err) res.status(400).send(_err);
-        res.status(201).json({
-          success: true,
-          message: 'Korisnik kreiran!',
-          user: {
-            fullName: user.fullName,
-            email: user.email,
-            id: user._id,
-          },
+      // prvo kreiraj hash za sifru i postavi je na potencijalnog korisnika
+      bcrypt.hash(req.body.password, 12)
+        .then((hashedPassword) => {
+          // umetni criptovanu sufru u user-a
+          const newUser = {
+            fullName: req.body.fullName,
+            email: req.body.email,
+            password: hashedPassword,
+          };
+          const user = new User(newUser); // kreiraj kopiju korisnika po prethodnom modelu, pa
+          // ga podesi podacima iz request body-ja u kome su prosledjeni
+          user.save((_err) => { // snimi korisnika i proveri da li ima gresaka
+            if (_err) res.status(400).send(_err);
+          });
+          res.status(201).json({
+            success: true,
+            message: 'Korisnik kreiran!',
+            user: {
+              fullName: user.fullName,
+              email: user.email,
+              id: user._id, // eslint-disable-line
+            },
+          });
         });
-      });
     } else { // korisnik vec postoji
       res.status(401).json({ success: false, message: 'Korisnik sa ovom e-mail adresom vec postoji!' });
     }

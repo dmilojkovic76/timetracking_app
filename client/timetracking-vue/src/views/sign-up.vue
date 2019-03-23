@@ -12,6 +12,8 @@
             :rules="userNameRules"
             label="FULL NAME"
             placeholder="John Doe"
+            @focus="hasErrorState = false"
+            @keydown="hasErrorState = false"
             required
             clearable
             dark
@@ -21,6 +23,8 @@
             :rules="emailRules"
             label="EMAIL"
             placeholder="email@example.com"
+            @focus="hasErrorState = false"
+            @keydown="hasErrorState = false"
             required
             clearable
             dark
@@ -34,6 +38,8 @@
             placeholder="5+ characters"
             :type="showPassword ? 'text' : 'password'"
             @click:append="showPassword = !showPassword"
+            @focus="hasErrorState = false"
+            @keydown="hasErrorState = false"
             required
             dark
           ></v-text-field>

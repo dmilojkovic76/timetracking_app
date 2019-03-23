@@ -107,7 +107,7 @@ export default new Vuex.Store({
             commit('setResStatus', { resStatus: startTimerRes.status }); // postavi status tog odgovora u state
             if (startTimerRes.status === 201) {
               const timerObj = {
-                id: startTimerRes.data.timer._id,
+                id: startTimerRes.data.timer._id, // eslint-disable-line
                 startTime: startTimerRes.data.timer.startTime,
                 userId: startTimerRes.data.timer.userId,
               };
@@ -136,7 +136,7 @@ export default new Vuex.Store({
           .then((timerStopRes) => {
             if (timerStopRes.status === 201) {
               const timerObj = {
-                id: timerStopRes.data.timer._id,
+                id: timerStopRes.data.timer._id, // eslint-disable-line
                 startTime: timerStopRes.data.timer.startTime,
                 endTime: timerStopRes.data.timer.endTime,
                 userId: timerStopRes.data.timer.userId,

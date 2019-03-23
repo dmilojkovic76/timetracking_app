@@ -1,6 +1,7 @@
 const express = require('express'); // glavna biblioteka za server
-const bodyParser = require('body-parser'); // omogucava detekciju JSON podataka
-const morgan = require('morgan'); // console logger komunikacija
+// const bodyParser = require('body-parser'); // omogucava detekciju JSON podataka
+// const morgan = require('morgan'); // console logger komunikacija
+const volleyball = require('volleyball'); // console logger komunikacija
 const cors = require('cors'); // otklanja Cross Origin greske
 const mongoose = require('mongoose'); // mongoDB drajver
 const config = require('./config'); // konfiguracijski fajl sa parametrima za server
@@ -8,6 +9,9 @@ const config = require('./config'); // konfiguracijski fajl sa parametrima za se
 const app = express(); // inicijalizacija servera
 
 const port = process.env.PORT || config.serverPort; // uzima port iz produkc. servera ili mog fajla
+
+// app.use(morgan('dev')); // pokreni morgan development logger
+app.use(volleyball);
 
 // povezivanje sa mongo bazom
 mongoose.connect(config.database, { useNewUrlParser: true, useCreateIndex: true })
@@ -28,10 +32,9 @@ app.use(cors({
 })); // inicijalizacija cors funkcija
 
 // konfigurisanje bodyParser() za prikupljanje podataka iz POST metoda
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
-
-app.use(morgan('dev')); // pokreni morgan development logger
+// app.use(bodyParser.urlencoded({ extended: false }));
+// app.use(bodyParser.json());
+app.use(express.json()); // ranije je trebalo instalirati body-parser paket
 
 // DEFINICIJE RUTA
 // =============================================================================
