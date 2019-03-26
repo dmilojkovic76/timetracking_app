@@ -3,7 +3,9 @@
     <Navbar />
     <v-layout row justify-center align-left mb-5>
       <v-flex xs10 sm8 md5 text-xs-left>
-        <span class="grey--text"><strong>{{ vreme.dan }}</strong> {{ vreme.datum }} {{ vreme.mesec }}, {{ vreme.vreme }}</span>
+        <span class="grey--text">
+          <strong>{{ vreme.dan }}</strong> {{ vreme.datum }} {{ vreme.mesec }}, {{ vreme.vreme }}
+        </span>
       </v-flex>
     </v-layout>
     <v-layout row justify-center align-center mb-5>
@@ -40,8 +42,12 @@
     <v-layout row justify-center align-center>
       <v-flex xs10 sm8 md5>
         <div v-show='timer'>{{ timer }}</div>
-        <v-btn color="grey lighten-2" block mb-5>reports</v-btn>
-        <v-btn color="primary" dark block mb-5 @click="clockBtnClick()">{{ isRunning ? "clock out":"clock in" }}</v-btn>
+        <v-btn color="grey lighten-2" block mb-5 href="/reports">
+          reports
+        </v-btn>
+        <v-btn color="primary" dark block mb-5 @click="clockBtnClick()">
+          {{ isRunning ? "clock out":"clock in" }}
+        </v-btn>
       </v-flex>
     </v-layout>
     <v-layout justify-center align-center>
@@ -53,7 +59,6 @@
 </template>
 
 <script>
-// import axios from 'axios';
 import Navbar from '@/components/Navbar.vue';
 
 import { mapState, mapGetters } from 'vuex';

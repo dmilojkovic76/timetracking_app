@@ -14,15 +14,15 @@ router.post('/sign-in', (req, res) => {
   User.findOne({ email: req.body.email }, (err, user) => {
     if (err) throw err;
     if (!user) {
-      res.status(401).json({ success: false, message: `Neuspešno prijavljivanje! Nije moguće pronaći ${req.body.email}` });
+      res.status(422).json({ success: false, message: 'Neuspešno prijavljivanje!' });
     } else if (user) {
       // proveri da li se sifre podudaraju
       bcrypt.compare(req.body.password, user.password)
         .then((result) => {
           if (result === false) {
-            res.status(401).json({
+            res.status(422).json({
               success: false,
-              message: 'Neuspešno prijavljivanje!. Pogrešna lozinka.'
+              message: 'Neuspešno prijavljivanje!.',
             });
           } else { // ako imamo korisnika i lozinke se podudaraju kreiraj token i autorizuj
             const payload = { // kreiram payload samo sa imenom i emailom
@@ -78,7 +78,7 @@ router.post('/sign-up', (req, res) => {
           });
         });
     } else { // korisnik vec postoji
-      res.status(401).json({ success: false, message: 'Korisnik sa ovom e-mail adresom vec postoji!' });
+      res.status(422).json({ success: false, message: 'Korisnik sa ovom e-mail adresom vec postoji!' });
     }
   });
 });
