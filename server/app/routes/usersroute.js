@@ -7,6 +7,10 @@ const router = express.Router();
 
 const User = require('../models/users');
 
+function respond422Err(res) {
+  res.status(422).json({ success: false, message: 'Neuspešno prijavljivanje!' });
+}
+
 // Autorizacija korisnika (POST http://localhost:3000/api/users/sign-in)
 router.post('/sign-in', (req, res) => {
   // prvo pronadji korisnika pomocu User modela
@@ -14,16 +18,13 @@ router.post('/sign-in', (req, res) => {
   User.findOne({ email: req.body.email }, (err, user) => {
     if (err) throw err;
     if (!user) {
-      res.status(422).json({ success: false, message: 'Neuspešno prijavljivanje!' });
+      respond422Err(res);
     } else if (user) {
       // proveri da li se sifre podudaraju
       bcrypt.compare(req.body.password, user.password)
         .then((result) => {
           if (result === false) {
-            res.status(422).json({
-              success: false,
-              message: 'Neuspešno prijavljivanje!.',
-            });
+            respond422Err();
           } else { // ako imamo korisnika i lozinke se podudaraju kreiraj token i autorizuj
             const payload = { // kreiram payload samo sa imenom i emailom
               _id: user._id, // eslint-disable-line
@@ -78,7 +79,7 @@ router.post('/sign-up', (req, res) => {
           });
         });
     } else { // korisnik vec postoji
-      res.status(422).json({ success: false, message: 'Korisnik sa ovom e-mail adresom vec postoji!' });
+      respond422Err();
     }
   });
 });
