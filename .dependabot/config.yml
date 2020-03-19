@@ -1,12 +1,10 @@
 version: 1
 update_configs:
-        # Keep package.json (& lockfiles) up to date as soon as
-        # new versions are published to the npm registry with "live"
-        # schedule, or on a daily bases with "daily" schedule
-        - package_manager: "javascript"
-                directory: "/client"
-                update_schedule: "daily"
-        # Keep Dockerfile up to date, batching pull requests weekly
-        - package_manager: "javascript"
-                directory: "/server"
-                update_schedule: "daily"
+  # Keep package.json (& lockfiles) up to date as soon as
+  # new versions are published to the npm registry with "live"
+  # schedule, or on a daily bases with "daily" schedule
+  - package_manager: "javascript"
+    directory: "/client"
+    update_schedule: "daily"
+    directory: "/server"
+    update_schedule: "daily"
