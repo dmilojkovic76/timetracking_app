@@ -60,6 +60,7 @@
 </template>
 
 <script>
+// eslint-disable-next-line import/no-unresolved
 import NavbarSigning from '@/components/NavbarSigning.vue';
 
 import { mapState, mapGetters } from 'vuex';
@@ -103,7 +104,7 @@ export default {
               this.$router.push('/dashboard');
             }
           })
-          .then(() => { this.loading = false; })
+          // .then(() => { this.loading = false; })
           .catch((err) => {
             this.loading = false;
             this.hasErrorState = this.srvResponce.responce.message;

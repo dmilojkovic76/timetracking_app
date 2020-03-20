@@ -10,6 +10,7 @@
 </template>
 
 <script>
+// eslint-disable-next-line import/no-unresolved
 import Navbar from '@/components/Navbar.vue';
 
 import { mapState, mapGetters } from 'vuex';

@@ -81,6 +81,7 @@
 </template>
 
 <script>
+// eslint-disable-next-line import/no-unresolved
 import NavbarSigning from '@/components/NavbarSigning.vue';
 
 import { mapState } from 'vuex';
@@ -128,6 +129,7 @@ export default {
           .catch((err) => {
             this.loading = false;
             this.hasErrorState = this.srvResponce.responce.message;
+            if (process.env.DEVELOPMENT) console.log(err);
           });
       }
     },

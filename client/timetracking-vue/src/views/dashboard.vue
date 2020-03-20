@@ -14,29 +14,22 @@
       </v-flex>
     </v-layout>
     <v-layout row justify-space-around mb-4 py-5>
-        <v-layout column ml-3 pl-3>
-          <v-flex>
-            <h2 class="display-4">00</h2>
-          </v-flex>
-          <v-flex mt-3>
-            <h4>HOURS</h4>
-          </v-flex>
+        <v-layout row ml-3 pl-3 justify-end>
+          <div>
+              <h2 class="display-4">00</h2>
+              <h4>HOURS</h4>
+          </div>
         </v-layout>
         <v-layout column shrink>
           <v-flex>
             <h2 class="display-4">:</h2>
           </v-flex>
-          <v-flex>
-            <h4> </h4>
-          </v-flex>
         </v-layout>
-        <v-layout column mr-3 pr-3>
-          <v-flex>
+        <v-layout row mr-3 pr-3 align-start>
+          <div>
             <h2 class="display-4">00</h2>
-          </v-flex>
-          <v-flex mt-3>
             <h4>MINUTES</h4>
-          </v-flex>
+          </div>
         </v-layout>
     </v-layout>
     <v-layout row justify-center align-center>
@@ -59,6 +52,7 @@
 </template>
 
 <script>
+// eslint-disable-next-line import/no-unresolved
 import Navbar from '@/components/Navbar.vue';
 
 import { mapState, mapGetters } from 'vuex';
@@ -106,6 +100,7 @@ export default {
     clockBtnClick() {
       let payload = {};
       if (this.isRunning === false) {
+        // this.isRunning = true;
         payload = {
           userId: this.user.id,
           startTime: new Date(),
@@ -123,6 +118,7 @@ export default {
             console.error(this.srvResponce.responce.message);
           });
       } else {
+        // this.isRunning = false;
         payload = {
           userId: this.user.id,
           timerId: this.timer.id,
