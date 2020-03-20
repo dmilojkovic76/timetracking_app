@@ -1,5 +1,8 @@
 module.exports = {
-  secret: 'mysupersecretsecret',
+  secret: 'mojasupertajnasifrazatoken',
+  refreshSecret: 'mojasupertajnasifrazarefreshtoken',
+  tokenLife: '900',
+  refreshTokenLife: '86400',
   bCryptSalt: 10,
   database: 'mongodb://localhost:27017/timetracking-app',
   serverPort: 3000,

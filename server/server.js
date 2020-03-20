@@ -14,7 +14,12 @@ const port = process.env.PORT || config.serverPort; // uzima port iz produkc. se
 app.use(volleyball);
 
 // povezivanje sa mongo bazom
-mongoose.connect(config.database, { useNewUrlParser: true, useCreateIndex: true })
+mongoose.connect(config.database,
+  {
+    useNewUrlParser: true,
+    useCreateIndex: true,
+    useUnifiedTopology: true,
+  })
   .catch((err) => { console.log(err); });
 
 // app.set('superSecret', config.secret);  // postavlja zastitu za auth

@@ -1,7 +1,11 @@
 const express = require('express'); // glavna biblioteka za server
 const bcrypt = require('bcrypt');
+const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken'); // create, sign, and verify jwt tokens
 const config = require('../../config'); // konfiguracijski fajl sa parametrima za server
+
+// Za pravu primenu ovo bi trebalo da bude nesto kao Redis a ne obican array
+const tokenList = {}
 
 const router = express.Router();
 
@@ -11,10 +15,14 @@ function respond422Err(res) {
   res.status(422).json({ success: false, message: 'Neuspešno prijavljivanje!' });
 }
 
+router.use(bodyParser.json()); // only parses json data
+router.use(bodyParser.urlencoded({ // handles the urlencoded bodies
+  extended: true,
+}));
+
 // Autorizacija korisnika (POST http://localhost:3000/api/users/sign-in)
 router.post('/sign-in', (req, res) => {
   // prvo pronadji korisnika pomocu User modela
-  // TODO: Trebalo bi uzeti u obzir da li vise korisnika ima isti email
   User.findOne({ email: req.body.email }, (err, user) => {
     if (err) throw err;
     if (!user) {
@@ -31,18 +39,25 @@ router.post('/sign-in', (req, res) => {
               fullName: user.fullName,
               email: user.email,
             };
-            // da ne bi poslao i lozinku jer jwt moze da se dekodira
-            const token = jwt.sign(payload, config.secret, { expiresIn: '24h' });
 
-            res.status(200).json({
+            const token = jwt.sign(payload, config.secret, { expiresIn: config.tokenLife });
+            // eslint-disable-next-line max-len
+            const refreshToken = jwt.sign(payload, config.refreshSecret, { expiresIn: config.refreshTokenLife });
+
+            const response = {
               success: true,
               token,
+              refreshToken,
               user: {
                 fullName: user.fullName,
                 email: user.email,
                 id: user._id, // eslint-disable-line
               },
-            });
+            };
+
+            tokenList[refreshToken] = response;
+
+            res.status(200).json(response);
           }
         });
     }
@@ -84,12 +99,45 @@ router.post('/sign-up', (req, res) => {
   });
 });
 
+// Sve rute posle ovoga moraju da posalju token
+router.use(require('../tokenChecker'));
+
 // Izlistavanje svih korisnika (GET http://localhost:3000/api/users)
 router.get('/', (req, res) => {
-  User.find((err, users) => {
-    if (err) res.status(400).send(err);
-    res.status(200).json(users);
-  });
+  // prvo proveri da li je poslat token pa i da li ga imamo u listi aktivnih
+  if ((req.body.refreshToken) && (req.body.refreshToken in tokenList)) {
+    try {
+      User.find((err, users) => {
+        if (err) {
+          res.status(400).send(err);
+        } else {
+          // kreiram payload samo sa imenom i emailom
+          const payload = {
+            _id: req.body.user._id, // eslint-disable-line
+            fullName: req.body.user.fullName,
+            email: req.body.user.email,
+          };
+          // generisem novi token
+          const newToken = jwt.sign(payload, config.secret, { expiresIn: config.tokenLife });
+          // prosledjujem novi token i trazene usere nazad
+          const response = {
+            token: newToken,
+            users,
+          };
+          // osvezimo token u nasoj listi aktivnih tokena
+          tokenList[req.body.refreshToken].token = newToken;
+          res.status(200).json(response);
+        }
+      });
+    } catch (error) {
+      res.json({
+        error: true,
+        data: error,
+      });
+    }
+  } else {
+    res.status(404).send('Invalid request');
+  }
 });
 
 // Citanje, Izmena i Brisanje odredjenog korisnika
@@ -104,6 +152,8 @@ router.route('/:user_id')
   // izmeni korisnika sa user_id (PUT http://localhost:3000/api/users/:user_id)
   .put((req, res) => {
     // prvo pronadji korisnika pomocu User modela
+
+    // FIXME: REFACTOR THIS!!!!
     User.findById(req.params.user_id, (err, user) => {
       if (err) res.status(400).send(err);
       // pripremi parametre
