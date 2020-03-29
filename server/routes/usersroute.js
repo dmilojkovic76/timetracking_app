@@ -9,12 +9,29 @@ const colors = require('colors'); // omogucava da console.log bude u boji
 
 dotenv.config({ path: './config/development.env' }); // ucitaj konfiguraciju
 
-// Za pravu primenu ovo bi trebalo da bude nesto kao Redis a ne obican array
-const tokenList = {};
-
 const router = express.Router();
 
 const User = require('../models/users');
+
+// Za pravu primenu ovo bi trebalo da bude nesto kao Redis a ne obican array
+const tokenList = {};
+
+function renewToken(token, userData) {
+  const payload = {
+    _id: userData.decoded._id, // eslint-disable-line
+    fullName: userData.decoded.fullName,
+    email: userData.decoded.email,
+  };
+  // generisem novi token
+  const newToken = jwt.sign(
+    payload,
+    process.env.SECRET,
+    { expiresIn: process.env.TOKEN_LIFE },
+  );
+  // osvezimo token u nasoj listi aktivnih tokena
+  tokenList[token].data.token = newToken;
+  return newToken;
+}
 
 function respond422Err(res) {
   res.status(422).json(
@@ -28,7 +45,7 @@ function respond422Err(res) {
 // ovo je bekada trebalo. sada je ugradjeno u express
 // router.use(bodyParser.json()); // only parses json data
 // router.use(bodyParser.urlencoded({ // handles the urlencoded bodies
-//   extended: true,
+//   extended: true,Express
 // }));
 
 // @def     Autorizacija korisnika
@@ -120,8 +137,8 @@ router.post('/sign-up', (req, res) => {
             },
           });
         });
-    } else { // korisnik vec postoji
-      respond422Err();
+    } else { // korisnik vec postojiExpress
+      respond422Err(res);
     }
   });
 });
@@ -132,12 +149,11 @@ router.use(require('../tokenChecker'));
 // @def     Autorizacija korisnika
 // @method  POST http://localhost:3000/api/v1/users/sign-out
 router.post('/sign-out', (req, res) => {
-  if ((req.body.token) && (req.body.token in tokenList)) {
+  const token = req.body.token || req.query.token || req.headers['x-access-token'] || req.headers.authorization.split(' ')[1];
+  if ((token) && (token in tokenList)) {
     try {
-      console.log(tokenList);
       // osvezimo token u nasoj listi aktivnih tokena
-      delete (tokenList[req.body.token]);
-      console.log(tokenList);
+      delete (tokenList[token]);
       const response = {
         success: true,
         message: 'Korisnik je odjavljen.',
@@ -158,31 +174,20 @@ router.post('/sign-out', (req, res) => {
   }
 });
 
-// @def     Izlistavanje svih korisnika
+// @def     Izlistavanje svih korisnikaExpress
 // @method  GET http://localhost:3000/api/v1/users
 router.get('/', (req, res) => {
   // prvo proveri da li je poslat token pa i da li ga imamo u listi aktivnih
-  if ((req.body.refreshToken) && (req.body.refreshToken in tokenList)) {
+  const token = req.body.token || req.query.token || req.headers['x-access-token'] || req.headers.authorization.split(' ')[1];
+  if ((token) && (token in tokenList)) {
     try {
+      // obnovi token
+      const newToken = renewToken(token, req);
       // eslint-disable-next-line array-callback-return
       User.find((err, users) => {
         if (err) {
           res.status(400).send(err);
         } else {
-          // kreiram payload samo sa imenom i emailom
-          const payload = {
-            _id: req.body.user._id, // eslint-disable-line
-            fullName: req.body.user.fullName,
-            email: req.body.user.email,
-          };
-          // generisem novi token
-          const newToken = jwt.sign(
-            payload,
-            process.env.SECRET,
-            { expiresIn: process.env.TOKEN_LIFE },
-          );
-          // osvezimo token u nasoj listi aktivnih tokena
-          tokenList[req.body.refreshToken].token = newToken;
           // prosledjujem novi token i trazene usere nazad
           const response = {
             sucess: true,
@@ -209,62 +214,146 @@ router.get('/', (req, res) => {
 
 // Citanje, Izmena i Brisanje odredjenog korisnika
 router.route('/:user_id')
-  // Pronadji korisnika sa user_id (GET http://localhost:3000/api/v1/users/:user_id)
+  // @def     Citanje odredjenog korisnika
+  // @method  GET http://localhost:3000/api/v1/users/user_id
   .get((req, res) => {
-    User.findById(req.params.user_id, (err, user) => {
-      if (err) res.status(400).send(err);
-      res.status(200).json(
-        {
-          sucess: true,
-          message: 'Pretraga je uspela.',
-          data: {
-            user,
-          },
-        },
-      );
-    });
+    // prvo proveri da li je poslat token pa i da li ga imamo u listi aktivnih
+    const token = req.body.token || req.query.token || req.headers['x-access-token'] || req.headers.authorization.split(' ')[1];
+    if ((token) && (token in tokenList)) {
+      try {
+        // obnovi token
+        const newToken = renewToken(token, req);
+        // Pronadji korisnika sa user_id
+        User.findById(req.params.user_id, (err, user) => {
+          if (err) {
+            res.status(400).send({
+              success: false,
+              message: 'Traženi korisnik nije pronađen!',
+              error: err,
+            });
+          } else {
+            res.status(200).json(
+              {
+                sucess: true,
+                message: 'Pretraga je uspela.',
+                data: {
+                  token: newToken,
+                  user,
+                },
+              },
+            );
+          }
+        });
+      } catch (error) {
+        res.json({
+          success: false,
+          message: 'Doslo je do greske prilikom pretrage',
+          data: error,
+        });
+      }
+    } else {
+      res.status(404).send('Neispravan upit!');
+    }
   })
 
-  // izmeni korisnika sa user_id (PUT http://localhost:3000/api/v1/users/:user_id)
+  // @def     izmeni korisnika sa user_id
+  // @method  PUT http://localhost:3000/api/v1/users/user_id
   .put((req, res) => {
-    // prvo pronadji korisnika pomocu User modela
-
-    // FIXME: REFACTOR THIS!!!!
-    User.findById(req.params.user_id, (err, user) => {
-      if (err) res.status(400).send(err);
-      // pripremi parametre
-      // eslint-disable-next-line no-param-reassign
-      user.fullName = req.body.fullName;
-      // eslint-disable-next-line no-param-reassign
-      user.email = req.body.email;
-      // eslint-disable-next-line no-param-reassign
-      user.password = req.body.password;
-      // i sacuvaj izmene
-      user.save((_err) => {
-        if (_err) res.status(400).send(_err);
-        res.status(200).json(
-          {
-            success: true,
-            message: 'Promene su sačuvane.',
-          },
-        );
-      });
-    });
+    // prvo proveri da li je poslat token pa i da li ga imamo u listi aktivnih
+    const token = req.body.token || req.query.token || req.headers['x-access-token'] || req.headers.authorization.split(' ')[1];
+    if ((token) && (token in tokenList)) {
+      try {
+        // obnovi token
+        const newToken = renewToken(token, req);
+        // FIXME: REFACTOR THIS!!!!
+        User.findById(req.params.user_id, (err, user) => {
+          if (err) {
+            res.status(400).send({
+              success: false,
+              message: 'Pretraga po datom ID nije uspela',
+              error: err,
+            });
+          }
+          // pripremi parametre
+          // eslint-disable-next-line no-param-reassign, max-len
+          if (req.body.fullName && req.body.fullName !== user.fullName) user.fullName = req.body.fullName;
+          // eslint-disable-next-line no-param-reassign
+          if (req.body.email && req.body.email !== user.email) user.email = req.body.email;
+          if (req.body.password) {
+            bcrypt.hash(req.body.password, 12)
+              .then((hashedPassword) => {
+                // eslint-disable-next-line no-param-reassign
+                user.password = hashedPassword;
+              });
+          }
+          // i sacuvaj izmene
+          user.save((_err) => {
+            if (_err) {
+              res.status(400).send({
+                success: false,
+                message: 'Izmena podataka za datog korisnika nije uspela',
+                error: _err,
+              });
+            } else {
+              res.status(200).json(
+                {
+                  success: true,
+                  message: 'Promene podataka za datog korisnika  su sačuvane.',
+                  data: {
+                    token: newToken,
+                    user,
+                  },
+                },
+              );
+            }
+          });
+        });
+      } catch (error) {
+        res.json({
+          success: false,
+          message: 'Doslo je do greske prilikom pretrage',
+          data: error,
+        });
+      }
+    } else {
+      res.status(404).send('Neispravan upit!');
+    }
   })
 
-  // Brisanje korisnika sa user_id (DELETE http://localhost:3000/api/v1/users/:user_id)
+  // @def     Brisanje korisnika sa user_id
+  // @method  DELETE http://localhost:3000/api/v1/users/user_id
   .delete((req, res) => {
-    User.deleteOne({
-      _id: req.params.user_id,
-    }, (err, user) => {
-      if (err) res.status(400).send(err);
-      res.status(200).json(
-        {
-          success: true,
-          message: `Korisnik ${user} je obrisan!`,
-        },
-      );
-    });
+    // prvo proveri da li je poslat token pa i da li ga imamo u listi aktivnih
+    const token = req.body.token || req.query.token || req.headers['x-access-token'] || req.headers.authorization.split(' ')[1];
+    if ((token) && (token in tokenList)) {
+      try {
+        User.deleteOne({
+          _id: req.params.user_id,
+        }, (err, user) => {
+          if (err) {
+            res.status(400).send({
+              success: false,
+              message: 'Brisanje zadatog korisnika nije uspelo.',
+              error: err,
+            });
+          }
+          res.status(200).json(
+            {
+              success: true,
+              message: `Korisnik ${user} je obrisan!`,
+            },
+          );
+        });
+      } catch (error) {
+        res.json({
+          success: false,
+          message: 'Doslo je do greske prilikom pretrage',
+          data: error,
+        });
+      }
+    } else {
+      res.status(404).send('Neispravan upit!');
+    }
   });
 
 module.exports = router;
