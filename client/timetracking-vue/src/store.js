@@ -77,18 +77,28 @@ export default new Vuex.Store({
         console.error(suError);
       });
     },
-    signOut({ commit }) {
+    signOut({ commit }, _data) {
       return new Promise((resolve, reject) => {
-        try {
-          commit('setResponce', { responce: '' });
-          commit('setResStatus', { resStatus: '' });
-          commit('setActiveToken', { token: '' });
-          commit('setActiveUser', { user: '' });
-          commit('setTimer', { timer: '' });
-          resolve();
-        } catch (error) {
-          reject(error);
-        }
+        axios({ // prvo odjavi korisnika sa servera
+          method: 'POST',
+          url: 'http://localhost:3000/api/users/sign-out',
+          headers: { 'content-type': 'application/json' },
+          data: _data,
+        })
+          .then((soResult) => {
+            if (soResult.status === 200 && soResult.succes) {
+              try {
+                commit('setResponce', { responce: '' });
+                commit('setResStatus', { resStatus: '' });
+                commit('setActiveToken', { token: '' });
+                commit('setActiveUser', { user: '' });
+                commit('setTimer', { timer: '' });
+                resolve(soResult.message);
+              } catch (error) {
+                reject(error);
+              }
+            } else reject(soResult.message);
+          });
       }, (signOutErr) => {
         console.log('Vuex signOut action nepredvidjena greska');
         console.log(signOutErr);

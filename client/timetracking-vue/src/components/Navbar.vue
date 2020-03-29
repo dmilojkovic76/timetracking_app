@@ -33,6 +33,7 @@ export default {
       'timer',
       'srvResponce',
       'token',
+      'refreshToken',
     ]),
     ...mapGetters({
       user: 'getUser',
@@ -54,8 +55,15 @@ export default {
       this.$router.go(-1);
     },
     signOut() {
-      this.$store.dispatch('signOut');
-      this.$router.push('/sign-in');
+      this.$store.dispatch('signOut', {
+        token: this.token,
+        refreshToken: this.refreshToken,
+      })
+        // eslint-disable-next-line no-alert
+        .then((res) => { alert(res); })
+        .then(
+          this.$router.push('/sign-in'),
+        );
     },
   },
 };

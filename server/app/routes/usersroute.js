@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 const express = require('express'); // glavna biblioteka za server
 const bcrypt = require('bcrypt');
 const bodyParser = require('body-parser');
@@ -5,14 +6,19 @@ const jwt = require('jsonwebtoken'); // create, sign, and verify jwt tokens
 const config = require('../../config'); // konfiguracijski fajl sa parametrima za server
 
 // Za pravu primenu ovo bi trebalo da bude nesto kao Redis a ne obican array
-const tokenList = {}
+const tokenList = {};
 
 const router = express.Router();
 
 const User = require('../models/users');
 
 function respond422Err(res) {
-  res.status(422).json({ success: false, message: 'Neuspešno prijavljivanje!' });
+  res.status(422).json(
+    {
+      success: false,
+      message: 'Neuspešno prijavljivanje!',
+    },
+  );
 }
 
 router.use(bodyParser.json()); // only parses json data
@@ -55,7 +61,8 @@ router.post('/sign-in', (req, res) => {
               },
             };
 
-            tokenList[refreshToken] = response;
+            tokenList[token] = response;
+            console.log(tokenList);
 
             res.status(200).json(response);
           }
@@ -102,11 +109,39 @@ router.post('/sign-up', (req, res) => {
 // Sve rute posle ovoga moraju da posalju token
 router.use(require('../tokenChecker'));
 
+// Autorizacija korisnika (POST http://localhost:3000/api/users/sign-out)
+router.post('/sign-out', (req, res) => {
+  if ((req.body.token) && (req.body.token in tokenList)) {
+    try {
+      const response = {
+        success: true,
+        message: 'Korisnik je odjavljen.',
+      };
+      console.log(tokenList);
+      // osvezimo token u nasoj listi aktivnih tokena
+      delete (tokenList[req.body.token]);
+      console.log(tokenList);
+      res.status(200).json(response);
+    } catch (error) {
+      res.json({
+        error: true,
+        data: error,
+      });
+    }
+  } else {
+    res.status(403).json({
+      sucess: false,
+      message: 'Nije prosledjen validan JWToken.',
+    });
+  }
+});
+
 // Izlistavanje svih korisnika (GET http://localhost:3000/api/users)
 router.get('/', (req, res) => {
   // prvo proveri da li je poslat token pa i da li ga imamo u listi aktivnih
   if ((req.body.refreshToken) && (req.body.refreshToken in tokenList)) {
     try {
+      // eslint-disable-next-line array-callback-return
       User.find((err, users) => {
         if (err) {
           res.status(400).send(err);
@@ -157,8 +192,11 @@ router.route('/:user_id')
     User.findById(req.params.user_id, (err, user) => {
       if (err) res.status(400).send(err);
       // pripremi parametre
+      // eslint-disable-next-line no-param-reassign
       user.fullName = req.body.fullName;
+      // eslint-disable-next-line no-param-reassign
       user.email = req.body.email;
+      // eslint-disable-next-line no-param-reassign
       user.password = req.body.password;
       // i sacuvaj izmene
       user.save((_err) => {

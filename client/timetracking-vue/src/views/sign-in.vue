@@ -104,7 +104,7 @@ export default {
               this.$router.push('/dashboard');
             }
           })
-          // .then(() => { this.loading = false; })
+          .then(() => { this.loading = false; })
           .catch((err) => {
             this.loading = false;
             this.hasErrorState = this.srvResponce.responce.message;

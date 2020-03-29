@@ -1,6 +1,5 @@
+/* eslint-disable no-console */
 const express = require('express'); // glavna biblioteka za server
-// const bodyParser = require('body-parser'); // omogucava detekciju JSON podataka
-// const morgan = require('morgan'); // console logger komunikacija
 const volleyball = require('volleyball'); // console logger komunikacija
 const cors = require('cors'); // otklanja Cross Origin greske
 const mongoose = require('mongoose'); // mongoDB drajver
@@ -36,9 +35,6 @@ app.use(cors({
   optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
 })); // inicijalizacija cors funkcija
 
-// konfigurisanje bodyParser() za prikupljanje podataka iz POST metoda
-// app.use(bodyParser.urlencoded({ extended: false }));
-// app.use(bodyParser.json());
 app.use(express.json()); // ranije je trebalo instalirati body-parser paket
 
 // DEFINICIJE RUTA
@@ -51,33 +47,6 @@ const timersRouter = require('./app/routes/timersroute');
 mainRouter.get('/', (req, res) => {
   res.json({ message: 'TimeTracking-app CRUD API' });
 });
-
-// middleware to use for all requests
-/* router.use((req, res, next) => {
-  // do validations here to make sure that everything coming from a request is safe
-
-  // check header or url parameters or post parameters for token
-  let token = req.body.token || req.query.token || req.headers['x-access-token'];
-  // decode token
-  if (token) {
-    // verifies secret and checks expiration
-    jwt.verify(token, app.get('superSecret'), (err, decoded) => {
-      if (err) {
-        return res.json({ success: false, message: 'Failed to authenticate token.' });
-      } else {
-        // if everything is good, save to request for use in other routes
-        req.decoded = decoded;
-        next();
-      }
-    });
-  } else {
-    // if there is no token return an error
-    return res.status(403).send({
-      success: false,
-      message: 'No token provided.'
-    });
-  }
-}); */
 
 // AKTIVACIJA RUTA -------------------------------
 app.use('/api', mainRouter);
