@@ -7,7 +7,7 @@ dotenv.config({ path: './config/development.env' }); // ucitaj konfiguraciju
 // Middleware za proveru ispravnosti tokena svih poziva serveru
 // eslint-disable-next-line consistent-return
 module.exports = (req, res, next) => {
-  const token = req.body.token || req.query.token || req.headers['x-access-token'];
+   const token = req.body.token || req.query.token || req.headers['x-access-token'] || req.headers.authorization.split(' ')[1];
 
   if (token) {
     // proveri token i validnost
@@ -19,10 +19,10 @@ module.exports = (req, res, next) => {
           {
             success: false,
             message: 'Neautorizovan pristup.',
+            error: err,
           },
         );
       }
-      console.log('Dekodiran token: ', decoded);
       req.decoded = decoded;
       next();
     });
@@ -32,6 +32,7 @@ module.exports = (req, res, next) => {
     return res.status(403).send({
       sucess: false,
       message: 'JWT nije prosledjen.',
+      error: 'JSON Web Token ERROR!',
     });
   }
 };
