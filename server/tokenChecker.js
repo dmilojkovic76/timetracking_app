@@ -1,9 +1,10 @@
 /* eslint-disable no-console */
 const jwt = require('jsonwebtoken');
-const config = require('../config');
+const dotenv = require('dotenv'); // konfiguracijski parametri iz okruzenja, tj. .env fajla
 
+dotenv.config({ path: './config/development.env' }); // ucitaj konfiguraciju
 
-// Middlewade za proveru ispravnosti tokena svih poziva serveru
+// Middleware za proveru ispravnosti tokena svih poziva serveru
 // eslint-disable-next-line consistent-return
 module.exports = (req, res, next) => {
   const token = req.body.token || req.query.token || req.headers['x-access-token'];
@@ -11,17 +12,17 @@ module.exports = (req, res, next) => {
   if (token) {
     // proveri token i validnost
     // eslint-disable-next-line consistent-return
-    jwt.verify(token, config.secret, (err, decoded) => {
+    jwt.verify(token, process.env.SECRET, (err, decoded) => {
       if (err) {
         console.log(err);
         return res.status(401).json(
           {
-            error: true,
-            message: 'Unauthorized access.',
+            success: false,
+            message: 'Neautorizovan pristup.',
           },
         );
       }
-      console.log('Decoded token: ', decoded);
+      console.log('Dekodiran token: ', decoded);
       req.decoded = decoded;
       next();
     });
@@ -29,7 +30,7 @@ module.exports = (req, res, next) => {
     // if there is no token
     // return an error
     return res.status(403).send({
-      error: true,
+      sucess: false,
       message: 'JWT nije prosledjen.',
     });
   }

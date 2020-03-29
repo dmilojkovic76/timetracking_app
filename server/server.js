@@ -1,60 +1,73 @@
 /* eslint-disable no-console */
 const express = require('express'); // glavna biblioteka za server
-const volleyball = require('volleyball'); // console logger komunikacija
 const cors = require('cors'); // otklanja Cross Origin greske
 const mongoose = require('mongoose'); // mongoDB drajver
-const config = require('./config'); // konfiguracijski fajl sa parametrima za server
+const dotenv = require('dotenv'); // konfiguracijski parametri iz okruzenja, tj. .env fajla
+const volleyball = require('volleyball'); // console logger komunikacija
+// eslint-disable-next-line no-unused-vars
+const colors = require('colors'); // omogucava da console.log bude u boji
 
 const app = express(); // inicijalizacija servera
 
-const port = process.env.PORT || config.serverPort; // uzima port iz produkc. servera ili mog fajla
+dotenv.config({ path: './config/development.env' }); // ucitaj konfiguraciju
 
 // app.use(morgan('dev')); // pokreni morgan development logger
-app.use(volleyball);
+app.use(volleyball); // pokreni volleyball console logger
 
 // povezivanje sa mongo bazom
-mongoose.connect(config.database,
+mongoose.connect(process.env.DB_URI,
   {
     useNewUrlParser: true,
     useCreateIndex: true,
     useUnifiedTopology: true,
   })
-  .catch((err) => { console.log(err); });
+  .then(conn => console.log(`Uspesno povezivanje sa bazom: ${conn.connection.host}`.yellow.bold))
+  .catch((err) => { console.log(`${err}`.red); });
 
-// app.set('superSecret', config.secret);  // postavlja zastitu za auth
+// app.set('superSecret', config.secret);  // PROBA postavlja zastitu za auth
 
 // podesavanja za cors se ucitavaju iz config fajla
+const CORS_ALLOWED_IPS = process.env.ALLOWED_IPS.split(',');
+console.log(`Lista dozvoljenih adresa za pristup: ${CORS_ALLOWED_IPS}`);
+
+// inicijalizacija cors funkcija za dozvoljene ip adrese
 app.use(cors({
   origin: (origin, callback) => {
-    if (config.allowedIPs.indexOf(origin) !== -1) {
+    if ((CORS_ALLOWED_IPS.indexOf(origin) !== -1) || (CORS_ALLOWED_IPS[0] === '*')) {
       callback(null, true);
     } else {
-      callback(new Error(`Origin: ${origin} is not allowed by CORS`));
+      callback(new Error(`Origin: ${origin} nije dozvoljen zbog CORS`.red));
     }
   },
   optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
-})); // inicijalizacija cors funkcija
+}));
 
 app.use(express.json()); // ranije je trebalo instalirati body-parser paket
 
 // DEFINICIJE RUTA
 // =============================================================================
 const mainRouter = express.Router();
-const usersRouter = require('./app/routes/usersroute');
-const timersRouter = require('./app/routes/timersroute');
+const usersRouter = require('./routes/usersroute');
+const timersRouter = require('./routes/timersroute');
 
-// test route (GET http://localhost:3000/api)
+// @def     Test ruta
+// @method  GET http://localhost:3000/api/v1
 mainRouter.get('/', (req, res) => {
-  res.json({ message: 'TimeTracking-app CRUD API' });
+  res.json({
+    success: true,
+    message: 'TimeTracking-app CRUD API v1',
+  });
 });
 
 // AKTIVACIJA RUTA -------------------------------
-app.use('/api', mainRouter);
-app.use('/api/users', usersRouter);
-app.use('/api/timers', timersRouter);
+app.use('/api/v1', mainRouter);
+app.use('/api/v1/users', usersRouter);
+app.use('/api/v1/timers', timersRouter);
 
-// START
+// START SERVER
 // =============================================================================
-app.listen(port, () => {
-  if (!process.env.PORT) console.log(`Express server listening on http://localhost:${port}`);
+const PORT = process.env.SERVER_PORT || 3003; // uzima port iz produkc. servera, mog fajla ili 3003
+
+app.listen(PORT, () => {
+  if (!process.env.SERVER_PORT) console.log(`Server u ${process.env.NODE_ENV} modu na http://localhost:${PORT}`.cyan.bold);
 });
