@@ -69,5 +69,5 @@ app.use('/api/v1/timers', timersRouter);
 const PORT = process.env.SERVER_PORT || 3003; // uzima port iz produkc. servera, mog fajla ili 3003
 
 app.listen(PORT, () => {
-  if (!process.env.SERVER_PORT) console.log(`Server u ${process.env.NODE_ENV} modu na http://localhost:${PORT}`.cyan.bold);
+  console.log(`Server u ${process.env.NODE_ENV} modu na http://localhost:${PORT}`.cyan.bold);
 });
