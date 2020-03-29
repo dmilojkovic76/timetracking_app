@@ -17,7 +17,7 @@
         "dotenv": "^8.2.0",
         "express": "^4.16.4",
         "jsonwebtoken": "^8.4.0",
-        "mongoose": "^5.4.3",
+        "mongoose": "^5.9.6",
         "morgan": "^1.9.1",
         "volleyball": "^1.5.1"
     },
