@@ -4,6 +4,11 @@ const router = express.Router();
 
 const Timer = require('../models/timers');
 
+// Generise status gresku i dodaje je na primljeni respone
+// @param {number} status - HTTP Status Code koji treba da definise ovaj server PaymentResponse.
+// @param {response} res - Response koji treba promeniti
+// @param {error} err - Greska koju treba prikljuciti
+// @return {response} Response koji se salje nazad klijentu
 function respondErr(status, res, err) {
   return res.status(status).json({
     success: false,
