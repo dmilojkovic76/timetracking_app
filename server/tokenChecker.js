@@ -1,13 +1,10 @@
 /* eslint-disable no-console */
 const jwt = require('jsonwebtoken');
-const dotenv = require('dotenv'); // konfiguracijski parametri iz okruzenja, tj. .env fajla
-
-dotenv.config({ path: './config/development.env' }); // ucitaj konfiguraciju
 
 // Middleware za proveru ispravnosti tokena svih poziva serveru
 // eslint-disable-next-line consistent-return
 module.exports = (req, res, next) => {
-   const token = req.body.token || req.query.token || req.headers['x-access-token'] || req.headers.authorization.split(' ')[1];
+  const token = req.body.token || req.query.token || req.headers['x-access-token'] || req.headers.authorization.split(' ')[1];
 
   if (token) {
     // proveri token i validnost
@@ -27,12 +24,11 @@ module.exports = (req, res, next) => {
       next();
     });
   } else {
-    // if there is no token
-    // return an error
-    return res.status(403).send({
+    // Ako nema tokena vrati gresku
+    console.log('Token nije prosledjen u zahtevu ili nije pronadjen!'.red);
+    return res.status(401).send({
       sucess: false,
-      message: 'JWT nije prosledjen.',
-      error: 'JSON Web Token ERROR!',
+      message: 'Nije prosledjen validan JWToken.',
     });
   }
 };

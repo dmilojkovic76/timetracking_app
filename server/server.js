@@ -9,7 +9,7 @@ const colors = require('colors'); // omogucava da console.log bude u boji
 
 const app = express(); // inicijalizacija servera
 
-dotenv.config({ path: './config/development.env' }); // ucitaj konfiguraciju
+dotenv.config({ path: './config/.env' }); // ucitaj konfiguraciju
 
 // app.use(morgan('dev')); // pokreni morgan development logger
 app.use(volleyball); // pokreni volleyball console logger

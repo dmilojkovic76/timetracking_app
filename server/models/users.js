@@ -22,6 +22,14 @@ const UserSchema = new mongoose.Schema({
     minlength: 5,
     required: [true, 'Polje za šifru ne može biti prazno.'],
   },
+  isAdmin: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
+},
+{
+  timestamps: true,
 });
 
 module.exports = mongoose.model('User', UserSchema);

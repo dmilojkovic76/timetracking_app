@@ -4,19 +4,32 @@ const router = express.Router();
 
 const Timer = require('../models/timers');
 
+function respondErr(status, res, err) {
+  return res.status(status).json({
+    success: false,
+    message: 'Greska prilikom obrade podataka!',
+    error: err,
+  });
+}
+
+// Sve rute posle ovoga moraju da posalju token
+router.use(require('../tokenChecker'));
+
 router.route('/')
-  // Kreiranje timera (POST http://localhost:8080/v1/api/timers)
+  // @def     Kreiranje timera
+  // @method  POST http://localhost:8080/v1/api/timers
   .post((req, res) => {
     // kreiraj kopiju timera po Timer modelu, pa
     // ga podesi podacima iz request body-ja u kome su prosledjeni
     const timer = new Timer(req.body);
     // snimi timer i proveri da li ima gresaka
     timer.save((err) => {
-      if (err) res.send(err);
+      if (err) respondErr(500, res, err);
+
       res.status(201).json(
         {
           sucess: true,
-          message: 'Timer kreiran!',
+          message: 'Tajmer kreiran!',
           data: {
             timer,
           },
@@ -25,14 +38,17 @@ router.route('/')
     });
   })
 
-  // izlistaj sve timere (GET http://localhost:3000/v1/api/timers)
+  // @def     izlistaj sve timere
+  // @method  GET http://localhost:3000/v1/api/timers
   .get((req, res) => {
+    // eslint-disable-next-line array-callback-return
     Timer.find((err, timers) => {
-      if (err) res.send(err);
-      res.json(
+      if (err) respondErr(400, res, err);
+
+      res.status(200).json(
         {
           success: true,
-          message: 'Lista timera za trazenog korisnika',
+          message: 'Lista tajmera za trazenog korisnika.',
           data: {
             timers,
           },
@@ -43,55 +59,62 @@ router.route('/')
 
 // Citanje, Izmena i Brisanje odredjenog timera
 router.route('/:timer_id')
-  // pronadji timer sa id (GET http://localhost:3000/api/v1/timers/:timer_id)
+  // @def     pronadji timer sa id
+  // @method  GET http://localhost:3000/api/v1/timers/:timer_id
   .get((req, res) => {
-    Timer.findById(req.params.timer_id, (err, timer) => {
-      if (err) res.send(err);
+    Timer.findById(req.params.timer_id, (err, time) => {
+      if (err) respondErr(400, res, err);
+
       res.status(200).json(
         {
           success: true,
-          message: 'Pojedincni tajmer je pronadjen',
+          message: 'Tajmer je pronadjen',
           data: {
-            timer,
+            time,
           },
         },
       );
     });
   })
-  // izmeni timer sa id (PUT http://localhost:3000/api/v1/timers/:timer_id)
+
+  // @def     izmeni timer sa id
+  // @method  PUT http://localhost:3000/api/v1/timers/:timer_id
   .put((req, res) => {
     // prvo pronadji timer pomocu Timer modela
-    Timer.findById(req.params.timer_id, (err, timer) => {
-      if (err) res.send(err);
-      timer.endTime = req.body.endTime; // izmene samo za krajnje vreme
+    Timer.findById(req.params.timer_id, (err, time) => {
+      if (err) respondErr(400, res, err);
+
+      // eslint-disable-next-line no-param-reassign
+      time.endTime = req.body.endTime; // izmene samo za krajnje vreme
       // sacuvaj izmene
-      timer.save((_err) => {
-        if (_err) res.send(_err);
+      time.save((_err) => {
+        if (_err) respondErr(500, res, _err);
         res.status(201).json(
           {
-            success: 'True',
+            success: true,
             message: 'Promene su sačuvane.',
             data: {
-              timer,
+              time,
             },
           },
         );
       });
     });
   })
-  // brisanje timera sa id (DELETE http://localhost:3000/api/v1/timers/:timer_id)
+
+  // @def     brisanje timera sa id
+  // @method  DELETE http://localhost:3000/api/v1/timers/:timer_id
   .delete((req, res) => {
-    Timer.deleteOne({
-      _id: req.params.timer_id,
-    }, (err, timer) => {
-      if (err) res.send(err);
+    Timer.deleteOne({ _id: req.params.timer_id }, (err, time) => {
+      if (err) respondErr(400, res, err);
+
       res.status(200).json(
         {
           success: true,
-          message: 'Timer je obrisan!',
+          message: 'Tajmer je obrisan!',
           data: {
-            timer,
-          }
+            time,
+          },
         },
       );
     });
