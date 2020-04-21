@@ -10,7 +10,7 @@
         "dev": "nodemon server.js"
     },
     "dependencies": {
-        "bcrypt": "^3.0.4",
+        "bcrypt": "^4.0.1",
         "body-parser": "^1.18.3",
         "colors": "^1.4.0",
         "cors": "^2.8.5",
